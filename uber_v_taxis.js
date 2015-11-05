@@ -65,6 +65,7 @@ function grid_class(size){
             for (x=0; x<row.length; x++){
                 
                 var cell = row[x];
+                
                 var valid_options = {};
                 
                 if (cell.headings.north == true){
@@ -137,7 +138,10 @@ function grid_class(size){
             if (cell_right != false && cell_right.headings.north == true){
                 valid_options.push('right');
             }
-            var cell_left = self.get_cell(cell.x-1, cell.y-2);
+            var cell_left = self.get_cell(cell.x-1, cell.y+2);
+            if (cell.x == 1 && cell.y == 0){
+                    console.log(cell.x-1, cell.y-2);
+                }
             if (cell_left != false && cell_left.headings.south == true){
                 valid_options.push('left');
             }
@@ -189,9 +193,7 @@ function cell_class(x, y, obstacle){
     this.make_html = function(){
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
-            console.log(this.valid_options);
             var valid_options_string = JSON.stringify(this.valid_options);
-            console.log(valid_options_string)
             this.html = "<td x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+ heading_string + "</td>";
         }
         else{
