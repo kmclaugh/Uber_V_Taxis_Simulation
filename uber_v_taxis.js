@@ -9,9 +9,172 @@ $(window).load(function () {
         the_grid.create_html();
         
         $('#grid').append(the_grid.html);
+        
+        car = new car_class(8,4, 'south', the_grid);
+        car.set_on(8,4);
+        
+        $('#time_step').click(function(){
+            car.move();
+        });
+        
+        $('#move_north').click(function(){
+            car.move_north();
+        });
+        $('#move_south').click(function(){
+            car.move_south();
+        });
+        $('#move_east').click(function(){
+            car.move_east();
+        });
+        $('#move_west').click(function(){
+            car.move_west();
+        });
+        
     
     });
 });
+
+function car_class(start_x, start_y, start_heading, grid){
+    /*class for the car*/
+    this.x = start_x;
+    this.y = start_y;
+    this.heading = start_heading;
+    this.grid = grid;
+    this.current_cell = false;
+    this.next_move = false;
+    this.next_next_move = false;
+    
+    this.move = function(){
+        if (this.next_move != false){
+            this.next_move();
+            this.next_move = false;
+        }
+        else if (this.next_next_move != false){
+            this.next_next_move();
+            this.next_next_move = false;
+        }
+        else{
+            this.pick_move();
+        }
+    }
+    
+    this.pick_move = function(){
+        /*select which direction the car will move based on the available options
+         *of the current cell*/
+        
+        var valid_options = this.current_cell.valid_options[this.heading];
+        var selected_move = valid_options[Math.floor(valid_options.length * Math.random())];
+        console.log(selected_move);
+        if (selected_move == 'straight'){
+            this.go_straight();
+        }
+        if (selected_move == 'right'){
+            this.turn_right();
+        }
+        if (selected_move == 'left'){
+            this.turn_left();
+        }
+    }
+    
+    this.go_straight = function(){
+        /*steps to go through an intercection based on current position and heading*/
+        if (this.heading == 'east'){
+            this.move_east();
+            this.next_move = this.move_east;
+        }
+        else if (this.heading == 'south'){
+            this.move_south();
+            this.next_move = this.move_south;
+        }
+        else if (this.heading == 'north'){
+            this.move_north();
+            this.next_move = this.move_north;
+        }
+        else if (this.heading == 'west'){
+            this.move_west();
+            this.next_move = this.move_west;
+        }
+    }
+    
+    this.turn_right= function(){
+        /*turns right at an intercection based on current position and heading*/
+        if (this.heading == 'east'){
+            this.move_south();
+            this.heading = 'south';
+        }
+        else if (this.heading == 'south'){
+            this.move_west();
+            this.heading = 'west';
+        }
+        else if (this.heading == 'north'){
+            this.move_east();
+            this.heading = 'east';
+        }
+        else if (this.heading == 'west'){
+            this.move_north();
+            this.heading = 'north';
+        }
+    }
+    
+    this.turn_left = function(){
+       /*turns left at an intercection based on current position and heading*/
+        if (this.heading == 'east'){
+            this.move_east();
+            this.next_move = this.move_north;
+            this.next_next_move = this.move_north;
+            this.heading = 'north';
+        }
+        else if (this.heading == 'south'){
+            this.move_south();
+            this.next_move = this.move_east;
+            this.next_next_move = this.move_east;
+            this.heading = 'east';
+        }
+        else if (this.heading == 'north'){
+            this.move_north();
+            this.next_move = this.move_west;
+            this.next_next_move = this.move_west;
+            this.heading = 'west';
+        }
+        else if (this.heading == 'west'){
+            this.move_west();
+            this.next_move = this.move_south;
+            this.next_next_move = this.move_south;
+            this.heading = 'south';
+        }
+    } 
+    
+    this.move_east = function(){
+        new_cell = this.set_on(this.current_cell.x+1, this.current_cell.y);
+    }
+    this.move_west = function(){
+        new_cell = this.set_on(this.current_cell.x-1, this.current_cell.y);
+    }
+    this.move_north = function(){
+        new_cell = this.set_on(this.current_cell.x, this.current_cell.y-1);
+    }
+    this.move_south = function(){
+        new_cell = this.set_on(this.current_cell.x, this.current_cell.y+1);
+    }
+    
+    this.set_on = function(x,y){
+        /*Places the car on the given x, y cell of the gird*/
+        var new_cell = this.grid.get_cell(x, y);
+        if (new_cell != false && new_cell.obstacle == false){
+            this.remove_from();
+            $('#'+new_cell.html_id).addClass('has_car');
+            this.current_cell = new_cell;
+        }
+        return new_cell;
+    }
+    this.remove_from = function(){
+        /*removes the car from it's current cell*/
+        if (this.current_cell != false){
+            $('#'+this.current_cell.html_id).removeClass('has_car');
+        }
+    }
+}
+    
 
 function grid_class(size){
     /*Class for carrying around grid info*/
@@ -139,9 +302,6 @@ function grid_class(size){
                 valid_options.push('right');
             }
             var cell_left = self.get_cell(cell.x-1, cell.y+2);
-            if (cell.x == 1 && cell.y == 0){
-                    console.log(cell.x-1, cell.y-2);
-                }
             if (cell_left != false && cell_left.headings.south == true){
                 valid_options.push('left');
             }
@@ -189,15 +349,16 @@ function cell_class(x, y, obstacle){
     this.headings = new headings;
     this.valid_options = {};
     this.html = '';
+    this.html_id = this.x+"-"+this.y;
     
     this.make_html = function(){
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
-            this.html = "<td x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+ heading_string + "</td>";
+            this.html = "<td id="+this.html_id+" x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+ heading_string + "</td>";
         }
         else{
-            this.html = '<td class="obstacle" x='+this.x+' y='+this.y+'>'+this.x+','+this.y+'</td>';
+            this.html = "<td id="+this.html_id+" class='obstacle' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+"</td>";
         }
         return this.html;
     }       

@@ -8,3 +8,7 @@
 #grid td.obstacle{
     background-color: red;
 }
+
+.has_car{
+    background-color: yellow;
+}
