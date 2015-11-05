@@ -1,3 +1,10 @@
+var total_count = 0;
+var straight_count = 0;
+var left_count = 0;
+var right_count = 0;
+var timer = null;
+var real_time_per_step = 10;
+var total_steps = 0;
 
 $(window).load(function () {
     
@@ -10,8 +17,20 @@ $(window).load(function () {
         
         $('#grid').append(the_grid.html);
         
-        car = new car_class(8,4, 'south', the_grid);
-        car.set_on(8,4);
+        car = new car_class(9,4, 'west', the_grid);
+        car.set_on(9,4);
+        
+        $("#start").click(function() {
+            if (timer !== null) return;
+            timer = window.setInterval(function(){
+               time_step();
+            }, real_time_per_step);
+        });
+        
+        $("#stop").click(function() {
+            clearInterval(timer);
+            timer = null
+        });
         
         $('#time_step').click(function(){
             car.move();
@@ -33,6 +52,18 @@ $(window).load(function () {
     
     });
 });
+
+function time_step(){
+    car.move();
+    total_steps += 1;
+    $('#total_steps').text(total_steps);
+}
+
+function update_counts(){
+     $('#straight_count').text(straight_count/total_count);
+     $('#right_count').text(right_count/total_count);
+     $('#left_count').text(left_count/total_count);
+}
 
 function car_class(start_x, start_y, start_heading, grid){
     /*class for the car*/
@@ -61,18 +92,25 @@ function car_class(start_x, start_y, start_heading, grid){
     this.pick_move = function(){
         /*select which direction the car will move based on the available options
          *of the current cell*/
-        
+        total_count += 1;
+        $('#total_count').text(total_count);
         var valid_options = this.current_cell.valid_options[this.heading];
         var selected_move = valid_options[Math.floor(valid_options.length * Math.random())];
         console.log(selected_move);
         if (selected_move == 'straight'){
             this.go_straight();
+            straight_count += 1;
+            update_counts();
         }
         if (selected_move == 'right'){
             this.turn_right();
+            right_count += 1;
+            update_counts();
         }
         if (selected_move == 'left'){
             this.turn_left();
+            left_count += 1;
+            update_counts();
         }
     }
     
