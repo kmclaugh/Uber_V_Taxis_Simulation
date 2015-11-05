@@ -1,0 +1,10 @@
+
+
+#grid td{
+    width: 40px;
+    height: 40px;
+    border: solid 1px;
+}
+#grid td.obstacle{
+    background-color: red;
+}
