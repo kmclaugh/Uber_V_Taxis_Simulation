@@ -12,3 +12,9 @@
 .has_car{
     background-color: yellow;
 }
+.has_passenger{
+    background-color: blue;
+}
+.has_car.has_passenger{
+    background-color: green;
+}
