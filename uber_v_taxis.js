@@ -1,5 +1,5 @@
 var timer = null;
-var real_time_per_step = 500;
+var real_time_per_step = 100;
 var cars_list = [];
 var total_steps = 0;
 var total_rides_started = 0;
@@ -7,6 +7,7 @@ var total_rides_completed = 0;
 var total_wait_time = 0;
 var total_ride_time = 0;
 var the_grid;
+var current_surge = 1;
 
 $(window).load(function () {
     
@@ -18,18 +19,19 @@ $(window).load(function () {
         the_grid.create_html();
         
         $('#grid').append(the_grid.html);
-        
-        car = new car_class('north', the_grid);
-        car.set_on(13,12);
-        cars_list.push(car);
-        car = new car_class('north', the_grid);
-        car.set_on(9,2);
-        cars_list.push(car);
-        
+   
+        //create_random_passenger();
         passenger = new passenger_class(the_grid);
         passenger.set_on(13,10);
-        passenger = new passenger_class(the_grid);
-        passenger.set_on(13,11);
+        //passenger = new passenger_class(the_grid);
+        //passenger.set_on(13,11);
+        
+        //create_random_car();
+        //create_random_car();
+        uber_car = new car_class(type='uber', start_heading='north', grid=the_grid, surge_needed=1, cruising_time=60);
+        uber_car.set_on(13,11);
+        uber_car.passenger_logic();
+        cars_list.push(uber_car);
         
         $("#start").click(function() {
             if (timer !== null) return;
@@ -59,7 +61,6 @@ $(window).load(function () {
         $('#move_west').click(function(){
             car.move_west();
         });
-        
     
     });
 });
@@ -70,16 +71,31 @@ function time_step(){
         car.move();
     }
     total_steps += 1;
-    console.log(the_grid.get_cell(13, 10).passengers);
     $('#total_steps').text(total_steps);
 }
 
+function create_random_passenger(){
+    /*Create a passenger and places them randomly on the grid*/
+    var random_cell = the_grid.pick_random_cell();
+    var passenger = new passenger_class(the_grid);
+    passenger.set_on(random_cell[0].x, random_cell[0].y);
+}
+
+function create_random_car(){
+    /*Create a car and places it randomly on the grid*/
+    var random_cell = the_grid.pick_random_cell();
+    var car = new car_class(random_cell[1], the_grid);
+    car.set_on(random_cell[0].x, random_cell[0].y);
+    car.passenger_logic();
+    cars_list.push(car);
+}
+    
 function passenger_class(grid){
     /*Class for the passenger*/
     this.grid = grid;
     this.current_cell = false;
     this.waiting = true;
-    this.destination_travel_time = 5;//getRandomInt(min=4, max=100);
+    this.destination_travel_time = getRandomInt(min=4, max=100);
     this.start_step = total_steps;
     this.wait_time;
     
@@ -123,8 +139,9 @@ function passenger_class(grid){
     }
 }
 
-function car_class(start_heading, grid){
+function car_class(type, start_heading, grid, surge_needed, cruising_time){
     /*class for the car*/
+    this.type = type
     this.x;
     this.y;
     this.heading = start_heading;
@@ -133,6 +150,9 @@ function car_class(start_heading, grid){
     this.next_move = false;
     this.next_next_move = false;
     this.passenger = false;
+    this.surge_needed = surge_needed;
+    this.cruising_time = cruising_time;
+    this.current_price;
     
     this.move = function(){
         if (this.next_move != false){
@@ -155,11 +175,16 @@ function car_class(start_heading, grid){
             if (this.current_cell.passengers.length > 0 ){
                 this.passenger = this.current_cell.passengers[0];
                 this.passenger.picked_up();
+                if (this.type == 'uber'){
+                    this.current_price = current_surge;
+                }
             }
         }
         else{
             this.passenger.current_travel_time += 1;
             if (this.passenger.current_travel_time == this.passenger.destination_travel_time){
+                var ride_price = this.passenger.destination_travel_time * this.current_price;
+                console.log(ride_price);
                 this.passenger.dropped_off();
                 if (this.current_cell.passengers.length == 0){
                     $('#'+this.current_cell.html_id).removeClass('has_passenger');
@@ -329,6 +354,19 @@ function grid_class(size){
         return self.html;
     }
     
+    this.pick_random_cell = function(){
+        /*picks a random, non-obstacle cell and returns the cell and a random heading from that cell*/
+        var obstacle = true;
+        while (obstacle == true){
+            var random_row = getRandomInt(min=0, max=this.size-1);
+            var random_column = getRandomInt(min=0, max=this.size-1);
+            var random_cell = this.get_cell(random_column, random_row);
+            obstacle = random_cell.obstacle;
+        }
+        var random_heading = random_cell.headings.list[Math.floor(random_cell.headings.list.length * Math.random())];
+        return [random_cell, random_heading];
+    }
+    
     this.add_headings = function(){
         /*Add possible headings to cell*/
         for (y=0; y<self.array.length; y++){
@@ -362,16 +400,32 @@ function grid_class(size){
                 var valid_options = {};
                 
                 if (cell.headings.north == true){
-                    valid_options['north'] = self.find_valid_options(cell, 'north');
+                    var heading_options = self.find_valid_options(cell, 'north');
+                    valid_options['north'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('north');
+                    }
                 }
                 if (cell.headings.west == true){
-                    valid_options['west'] = self.find_valid_options(cell, 'west');
+                    var heading_options = self.find_valid_options(cell, 'west');
+                    valid_options['west'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('west');
+                    }
                 }
                 if (cell.headings.east == true){
-                    valid_options['east'] = self.find_valid_options(cell, 'east');
+                    var heading_options = self.find_valid_options(cell, 'east');
+                    valid_options['east'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('east');
+                    }
                 }
                 if (cell.headings.south == true){
-                    valid_options['south'] = self.find_valid_options(cell, 'south');
+                    var heading_options = self.find_valid_options(cell, 'south');
+                    valid_options['south'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('south');
+                    }
                 }
                 cell.valid_options = valid_options;
             }
@@ -501,6 +555,7 @@ function headings(){
     this.south = false;
     this.east = false;
     this.west = false;
+    this.list = [];
     
     this.make_headings_string = function(){
         var headings_string = '';

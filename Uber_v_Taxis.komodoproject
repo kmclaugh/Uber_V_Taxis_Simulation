@@ -2,5 +2,6 @@
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="e4b0ebc4-0df3-49bc-930a-08ff9e27037f" kpf_version="5" name="Uber_v_Taxis.komodoproject">
 <preference-set idref="e4b0ebc4-0df3-49bc-930a-08ff9e27037f" id="project" preftype="project">
+  <long id="prefs_version">1</long>
 </preference-set>
 </project>
