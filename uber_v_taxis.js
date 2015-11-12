@@ -1,6 +1,7 @@
 var timer = null;
 var real_time_per_step = 100;
-var cars_list = [];
+var uber_list = [];
+var passengers_list = [];
 var total_steps = 0;
 var total_rides_started = 0;
 var total_rides_completed = 0;
@@ -11,6 +12,8 @@ var the_grid;
 var current_surge = 1;
 var base_price = 2.5;
 var taxi_price = 3;
+var current_total_wait_time = 0;
+var previous_total_weight_time = 0;
 
 $(window).load(function () {
     
@@ -22,21 +25,8 @@ $(window).load(function () {
         the_grid.create_html();
         
         $('#grid').append(the_grid.html);
-   
-        //create_random_passenger();
-        passenger = new passenger_class(the_grid);
-        passenger.set_on(13,10);
-        //passenger = new passenger_class(the_grid);
-        //passenger.set_on(13,11);
         
-        //create_random_car();
-        //create_random_car();
-        //uber_car = new car_class(type='uber', start_heading='north', grid=the_grid, surge_needed=1, cruising_time=60);
-        //uber_car.set_on(13,11);
-        uber_car = new car_class(type='taxi', start_heading='north', grid=the_grid, surge_needed=false, cruising_time=false, current_price=taxi_price);
-        uber_car.set_on(13,11);
-        uber_car.passenger_logic();
-        cars_list.push(uber_car);
+        create_uber_list();
         
         $("#start").click(function() {
             if (timer !== null) return;
@@ -71,12 +61,58 @@ $(window).load(function () {
 });
 
 function time_step(){
-    for (c=0; c<cars_list.length; c++){
-        car = cars_list[c];
-        car.move();
+    for (u=0; u<uber_list.length; u++){
+        uber_car = uber_list[u];
+        uber_car.time_step_logic();
     }
+    
+    if (passengers_list.length == 0){
+        create_random_passengers(1);
+    }
+    if (total_steps == 200){
+        create_random_passengers(100);
+    }
+    
+    current_total_wait_time = 0;
+    for (p=0; p<passengers_list.length; p++){
+        passenger = passengers_list[p];
+        passenger.current_wait_time += 1;
+        current_total_wait_time += passenger.current_wait_time;
+    }
+    if (current_total_wait_time !=0 && current_total_wait_time > previous_total_weight_time + 100){
+        current_surge += 1;
+        previous_total_weight_time = Math.round(current_total_wait_time / 100) * 100;
+        console.log(current_total_wait_time, current_surge)
+    }
+    else if (current_total_wait_time < 100 && current_surge != 1){
+        current_surge -= 1;
+        previous_total_weight_time = 0;
+    }
+    
     total_steps += 1;
     $('#total_steps').text(total_steps);
+    $('#current_total_wait_time').text(current_total_wait_time);
+    $('#current_surge').text(current_surge);
+}
+
+function create_uber_list(){
+    /*creates the of uber drivers with different surge needed*/
+    var surge_needed = 1;
+    for (counter=0; counter<100; counter++){
+        if (counter != 0 && counter%5 == 0){
+            surge_needed += 1;
+        }
+        uber_car = new car_class(type='uber', grid=the_grid, surge_needed=surge_needed, max_cruising_time=100, current_price=false, driving=false);
+        uber_list.push(uber_car);
+    }
+}
+        
+
+function create_random_passengers(number_of_passengers){
+    /*Creates the given number of random passengers*/
+    for (counter=0; counter<number_of_passengers; counter++){
+        create_random_passenger();
+    }
 }
 
 function create_random_passenger(){
@@ -84,15 +120,7 @@ function create_random_passenger(){
     var random_cell = the_grid.pick_random_cell();
     var passenger = new passenger_class(the_grid);
     passenger.set_on(random_cell[0].x, random_cell[0].y);
-}
-
-function create_random_car(){
-    /*Create a car and places it randomly on the grid*/
-    var random_cell = the_grid.pick_random_cell();
-    var car = new car_class(random_cell[1], the_grid);
-    car.set_on(random_cell[0].x, random_cell[0].y);
-    car.passenger_logic();
-    cars_list.push(car);
+    passengers_list.push(passenger);
 }
     
 function passenger_class(grid){
@@ -103,6 +131,7 @@ function passenger_class(grid){
     this.destination_travel_time = getRandomInt(min=4, max=100);
     this.start_step = total_steps;
     this.wait_time;
+    this.current_wait_time = 0;
     
     this.current_travel_time = 0;
     
@@ -115,6 +144,8 @@ function passenger_class(grid){
         total_wait_time += this.wait_time;
         var average_wait_time = total_wait_time/total_rides_started;
         $('#average_wait_time').text(average_wait_time);
+        var index = passengers_list.indexOf(this);
+        passengers_list.splice(index, 1);
     }
         
     this.dropped_off = function(current_price){
@@ -147,20 +178,46 @@ function passenger_class(grid){
     }
 }
 
-function car_class(type, start_heading, grid, surge_needed, cruising_time, current_price){
+function car_class(type, grid, surge_needed, max_cruising_time, current_price, driving){
     /*class for the car*/
-    this.type = type
+    this.type = type;
     this.x;
     this.y;
-    this.heading = start_heading;
+    this.heading;
     this.grid = grid;
     this.current_cell = false;
     this.next_move = false;
     this.next_next_move = false;
     this.passenger = false;
     this.surge_needed = surge_needed;
-    this.cruising_time = cruising_time;
+    this.max_cruising_time = max_cruising_time;
     this.current_price = current_price;
+    this.driving = driving;
+    this.cruising_time = 0;
+    
+    this.time_step_logic = function(){
+        /*steps through the logic for a time step*/
+        if (this.driving == true){
+            this.move();
+            if (this.passenger == false){
+                this.cruising_time += 1;
+                if (this.cruising_time == this.max_cruising_time && current_surge < this.surge_needed){
+                    this.remove_from();
+                    this.cruising_time = 0;
+                    this.driving = false;
+                }
+            }
+        }
+        
+        else if (current_surge >= this.surge_needed){
+            var random_cell = the_grid.pick_random_cell();
+            this.heading = random_cell[1];
+            this.set_on(random_cell[0].x, random_cell[0].y);
+            this.driving = true;
+            this.passenger_logic();
+        }
+            
+    }
     
     this.move = function(){
         if (this.next_move != false){
@@ -183,6 +240,7 @@ function car_class(type, start_heading, grid, surge_needed, cruising_time, curre
             if (this.current_cell.passengers.length > 0 ){
                 this.passenger = this.current_cell.passengers[0];
                 this.passenger.picked_up();
+                this.cruising_time = 0;
                 if (this.type == 'uber'){
                     this.current_price = current_surge * base_price;
                 }
@@ -205,6 +263,7 @@ function car_class(type, start_heading, grid, surge_needed, cruising_time, curre
         /*select which direction the car will move based on the available options
          *of the current cell*/
         var valid_options = this.current_cell.valid_options[this.heading];
+        console.log(valid_options);
         var selected_move = valid_options[Math.floor(valid_options.length * Math.random())];
         if (selected_move == 'straight'){
             if (valid_options.length > 1){
