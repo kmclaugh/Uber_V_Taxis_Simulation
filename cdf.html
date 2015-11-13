@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+        
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script type="text/javascript" src="bootstrap-slider.js"></script>
+        <link rel="stylesheet" href="uber_v_taxis.css">
+        <link rel="stylesheet" href="bootstrap-slider.css">
+        
+        <title>CDF test!</title>
+    </head>
+    <body>
+        <div id="container">
+            <div id="graph"></div>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        data = [
+                'YDR202C',
+                'YPL084W',
+                'YDL006W',
+                'YDR378C',
+                'YGR193C',
+                'YBR221C',
+                'YDR318W',
+                'YLL046C',
+                'YDL099W',
+                'YEL053C',
+                'YKL003C',
+                'YHR009C',
+                'YBR162C',
+                'YER169W',
+                'YPL078C'
+                ]
+    
+        function generateCDF(){
+          event.preventDefault();
+          generateCDF_plot();
+          return false;
+        }
+        
+        // define the margin, height, and witdth of the plot
+        var margin = {top: 20, right: 30, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+        
+        // defined the x range for plot data (this can be used to map
+        // between plot values and where they are actually plotted on the graph)
+        var x = d3.scale.linear()
+            .range([0, width]);
+        // same for x
+        var y = d3.scale.linear()
+            .range([height, 0]);
+        
+        // define the xAxis hashes
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+        
+        // define the yAxis hashes
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+        
+        // define the cdf plot line
+        var line = d3.svg.line()
+            .x(function(d) { return x(d.x); })
+            .y(function(d) { return y(d.y); });
+        
+        // var zoom = d3.behavior.zoom()
+        //     .scaleExtent([1, 10])
+        //     .on("zoom", zoomed);
+        
+        // append the svg to the web page
+        var svg = d3.select('#graph').append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            //.call(d3.behavior.zoom().scaleExtent([1, 8]));
+        
+        // create object to keep track of the x location for the data that makes up the cdf plot.
+        // In this example keys are ORFs and values are there corresponding z-score (which is the x-axis on the plot)
+        var dataLookup = new Object();
+        
+        // setup color scale -- this will be used so that every dataset ploted is associated with a different color
+        var color = d3.scale.category10();
+        
+        generateCDF_plot();
+        
+        
+        // generate the main cdf plot
+        function generateCDF_plot(){
+          // pull in the data from the textarea element
+            var dataLength = data.length;
+            for (var i = 0; i < dataLength; i++) {
+              data[i].x =  +data[i].x*-1;
+              data[i].y = +((i+1)/dataLength);
+              dataLookup[data[i].orf]=data[i].x;
+            };
+        
+            // scale the x and y axis according the the max and min values, could also keep 
+            // track of min and max values in loop above. The .nice() will round the min and max values to
+            // nice values
+            x.domain(d3.extent(data, function(d) { return d.x; })).nice();
+            y.domain(d3.extent(data, function(d) { return d.y; })).nice();
+            
+            // append the x axis and its label to the plot
+            svg.append("g")
+                  .attr("class", "x axis")
+                  .attr("transform", "translate(0," + height + ")")
+                  .call(xAxis)
+                .append("text")
+                  .attr("class", "label")
+                  .attr("x", width)
+                  .attr("y", -6)
+                  .style("text-anchor", "end")
+                  .text("Score");
+        
+            // append y-axis and its label...
+            svg.append("g")
+                  .attr("class", "y axis")
+                  .call(yAxis)
+                .append("text")
+                  .attr("transform", "rotate(-90)")
+                  .attr("y", 6)
+                  .attr("dy", ".71em")
+                  .style("text-anchor", "end")
+                  .text("Fraction of Data");
+        
+            // append the actual line to the graph
+            svg.append("path").datum(data).attr("class", "line").attr("d", line).style("stroke", function(d) { return color("initial"); });
+        
+            // load the other cdf data. The will be loaded as a scatter plot (i.e. discrete points) instead of lines
+            return(loadOtherCSVs());
+          });
+        }
+        
+        
+        function loadOtherCSVs(){
+          
+          d3.csv('subset.csv', function(error,data1){
+            var data1Label = "Subset Data";
+            if(data1Label == '' || data1Label == undefined){data1Label='na';}
+            data1 = data1.filter(function(row){
+              if(dataLookup.hasOwnProperty(row.orf)){
+                row.x = dataLookup[row.orf];
+                return row;
+              }
+            });
+            // sort the data
+            data1.sort(function(a,b) { return a.x - b.x;});
+            var numData = data1.length;
+            for (var i = 0; i < numData; i++) {
+              data1[i].y = +((i+1)/numData);
+              data1[i].label = data1Label;
+            };
+        
+            svg.selectAll(".dot")
+                .data(data1)
+                .enter().append("circle")
+                  .attr("class", "dot")
+                  .attr("r", 3.5)
+                  .attr("cx", function(d) { return x(d.x); }) //console.debug(d.x+", "+x(d.x));
+                  .attr("cy", function(d) { return y(d.y); }) //console.debug(y(d.y));
+                  .style("fill", function(d) { return color(data1Label); })
+                  .on("mouseover", showDetails).on("mouseout", hideDetails);;
+        
+            generateLegend();
+            return generateMouseOver();
+          });
+        }
+        
+        function generateMouseOver(){
+          // define a 'focus' class object to display info when we hover over an individual datum.
+          var focus = svg.append("g")
+               .attr("class", "focus")
+               .style("display", "none");
+        
+          // setup the dimensions for the overlay (will be displayed just to the left of the item being moused over)
+          var popup = focus.append("g").attr("class","popup");
+          popup.append("rect");
+          popup.append("text").attr("x", 9).attr("dy", ".35em");
+          
+        
+          // add vertical line on x axis to highlight coordinates being moused over
+          focus.append("line").attr("class", "x")
+            .attr("y1",y(0)-6)
+            .attr("y2",y(0)+6);
+        
+          // add horizontal line on y axis to highlight coordinates being moused over
+          focus.append("line").attr("class", "y").attr("x1",-6).attr("x2",6);
+        }
+        
+        // Mouseover tooltip function
+        // d == current node, i == node index, i think
+        function showDetails(d, i) {
+        
+          // highlight the element being moused over
+          d3.select(this).style("stroke", "green").style("stroke-width", 5.0);
+        
+          //position focus
+          var focus = d3.select(".focus");
+          var popup = focus.select(".popup").attr("transform", "translate(" + x(d.x) + "," + y(d.y) + ")");
+          popup=popup.select("text");
+          popup.text(d.orf).append("tspan").text(" ("+d.x+")"); // add text to focus
+          
+          var bbox = popup.node().getBBox();
+          focus.select("rect")
+            .attr("x", bbox.x)
+            .attr("y", bbox.y)
+            .attr("width", bbox.width)
+            .attr("height", bbox.height)
+        
+          focus.style("display", null); // show focus
+          
+          focus.select(".x").attr("transform", "translate(" + x(d.x) + ",0)");
+          focus.select(".y").attr("transform", "translate(0," + y(d.y) + ")");
+          svg.selectAll(".x.axis path").style("fill-opacity", Math.random()); // XXX Chrome redraw bug
+        };
+        function hideDetails(d, i){
+          var focus = d3.select(".focus");
+          focus.style("display", "none");
+          return d3.select(this).style("stroke", "none");
+        }
+        
+        // generate the legend for the datasets present
+        function generateLegend(){
+          // add legend
+          var legend = svg.selectAll(".legend") // create a legend item for each data
+            .data(color.domain()) // within color.domain
+            .enter().append("g") // .enter actually creates the legend, append a 'g' element
+            .attr("class", "legend") // set the class to legend, then for each set the y-height (i is the index)
+            .attr("transform", function(d, i) { return "translate(0," + (i * 20+10) + ")"; });
+        
+          // add a rectangle to display the associated color
+          legend.append("rect")
+              .attr("x", width - 18)
+              .attr("width", 18)
+              .attr("height", 18)
+              .style("fill", color);
+        
+          // add the text label
+          legend.append("text")
+              .attr("x", width - 24)
+              .attr("y", 9)
+              .attr("dy", ".35em")
+              .style("text-anchor", "end")
+              .text(function(d) { return d; });
+        }
+    
+    
+    </script>
+
+</html>
