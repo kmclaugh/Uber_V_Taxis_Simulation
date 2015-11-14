@@ -19,6 +19,10 @@
     background-color: green;
 }
 
+#graph{
+    margin: 10px;
+}
+
 .axis path,
 .axis line{
     fill: none;
@@ -36,3 +40,4 @@
 .bar{
     fill: FireBrick;
 }
+

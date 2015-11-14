@@ -27,8 +27,8 @@ $(window).load(function () {
          $(".cdf_slider").on("slide", function(slideEvt) {
             
             var uber_cdf_data = generate_data();  
-            var vis = d3.select('#graph').transition();
-            vis.select('.line')
+            var svg = d3.select('#graph').transition();
+            svg.select('.line')
                 .duration(750)
                 .attr("d", lineFunc(uber_cdf_data));
 
@@ -69,22 +69,37 @@ function generate_data(){
 
 function draw_graph(the_data){
     
-    var vis = d3.select('#graph'),
-                WIDTH = 500,
-                HEIGHT = 250,
-                MARGINS = {
-                  top: 20,
-                  right: 20,
-                  bottom: 20,
-                  left: 50
-                };
+    var margin = {
+        top: 30,
+        right: 0,
+        bottom: 35,
+        left: 50
+    };
+    var width = 500 - margin.right - margin.left;
+    var height = 250 - margin.top - margin.bottom;
+    
+    var svg = d3.select('#graph')
+        .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+            .attr("transform", 
+                  "translate(" + margin.left + "," + margin.top + ")");
+    
+    //Add the graph title
+    svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", (0 - margin.top/2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .text("Uber Driver Incentive Curve");
                 
     var xRange = d3.scale.linear()
-        .range([MARGINS.left, WIDTH - MARGINS.right])
+        .range([0, width])
         .domain([d3.min(the_data, function(d) {return d.x;}), d3.max(the_data, function(d) {return d.x;})]);
       
     var yRange = d3.scale.linear()
-        .range([HEIGHT - MARGINS.top, MARGINS.bottom])
+        .range([height, 0])
         .domain([d3.min(the_data, function(d) {return d.y;}), d3.max(the_data, function(d) {return d.y;})]);
     
     var xAxis = d3.svg.axis()
@@ -98,20 +113,29 @@ function draw_graph(the_data){
         .orient('left')
         .tickSubdivide(true);
   
-    vis.append('svg:g')
+    //add the x-axis
+    svg.append('svg:g')
         .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + (HEIGHT - MARGINS.bottom) + ')')
+        .attr('transform', 'translate(0,' + height + ')')
         .call(xAxis);
     
-    vis.append('svg:g')
+    svg.append("text")      // text label for the x axis
+        .attr("x", width / 2 )
+        .attr("y",  height+margin.bottom-5)
+        .style("text-anchor", "middle")
+        .text("Surge");
+    
+    //Add the y-axis
+    svg.append('svg:g')
         .attr('class', 'y axis')
-        .attr('transform', 'translate(' + (MARGINS.left) + ',0)')
         .call(yAxis)
-        .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", ".71em")
-            .style("text-anchor", "end");
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Total Number of Drivers");
     
   
     var lineFunc = d3.svg.line()
@@ -123,7 +147,7 @@ function draw_graph(the_data){
         })
         .interpolate('basis');
     
-    vis.append('svg:path')
+    svg.append('svg:path')
         .attr('d', lineFunc(the_data))
         .attr('stroke', 'blue')
         .attr('stroke-width', 2)
