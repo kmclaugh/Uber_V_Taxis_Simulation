@@ -7,16 +7,33 @@
         <!-- Bootstrap -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-        
+        <script src="http://d3js.org/d3.v3.min.js"></script>
         
         <script type="text/javascript" src="bootstrap-slider.js"></script>
         <script type="text/javascript" src="uber_v_taxis.js"></script>
+        <script type="text/javascript" src="uber_cdf.js"></script>
         <link rel="stylesheet" href="uber_v_taxis.css">
         <link rel="stylesheet" href="bootstrap-slider.css">
     </head>
     <body>
         <div class='container'>
-            <div class='row'>
+                <div class='row'>
+                    <div class='row'>
+                    <div class='col-md-1'></div>
+                    <div class='col-md-10'>
+                        <input id="mean" class='cdf_slider' type="text" />
+                    </div>
+                    <div class='col-md-1'></div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-1'>
+                        <input id="standard_dev" class='cdf_slider' type="text" />
+                    </div>
+                    <div class='col-md-11'>
+                        <svg id="graph" width="500" height="250"></svg>
+                    </div>
+                    
+                </div>
                 <div class='col-md-9'>
                     <div id='grid'></div>
                 </div>

@@ -28,7 +28,6 @@ $(window).load(function () {
         
         $('#grid').append(the_grid.html);
         
-        create_uber_list();
         
         $("#start").click(function() {
             if (timer !== null) return;
@@ -61,8 +60,8 @@ $(window).load(function () {
         
         $("#demand_slider").slider({
             reversed : true,
-            ticks : [0, 1000],
-            scale: 'logarithmic',
+            ticks : [0, 100],
+            scale: 'linear',
             step: 1,
             ticks_snap_bounds: 1
         });
@@ -117,18 +116,6 @@ function time_step(){
     $('#current_total_wait_time').text(current_total_wait_time);
     $('#current_surge').text(current_surge);
     $('#current_total_ubers').text(current_total_ubers);
-}
-
-function create_uber_list(){
-    /*creates the of uber drivers with different surge needed*/
-    var surge_needed = 1;
-    for (counter=0; counter<500; counter++){
-        if (counter != 0 && counter%5 == 0){
-            surge_needed += 1;
-        }
-        uber_car = new car_class(type='uber', grid=the_grid, surge_needed=surge_needed, max_cruising_time=10, current_price=false, driving=false);
-        uber_list.push(uber_car);
-    }
 }
         
 
@@ -229,6 +216,8 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
                     this.remove_from();
                     this.cruising_time = 0;
                     this.driving = false;
+                    this.next_next_move = false;
+                    this.next_move = false
                 }
             }
         }
@@ -286,9 +275,15 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
     this.pick_move = function(){
         /*select which direction the car will move based on the available options
          *of the current cell*/
+        //console.log(this.current_cell, this.heading)
         var valid_options = this.current_cell.valid_options[this.heading];
-        //console.log(valid_options);
-        var selected_move = valid_options[Math.floor(valid_options.length * Math.random())];
+        
+        try{
+            var selected_move = valid_options[Math.floor(valid_options.length * Math.random())];
+        }
+        catch(err){
+            console.log(this.current_cell, this.heading)
+        }
         if (selected_move == 'straight'){
             if (valid_options.length > 1){
                 this.go_straight(intersection=true);
