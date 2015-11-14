@@ -18,8 +18,7 @@ $(window).load(function () {
             reversed : true,
             ticks : [1, max_cdf_standard_dev/2, max_cdf_standard_dev],
             scale: 'linear',
-            step: 1,
-            ticks_snap_bounds: 1,
+            step: .1,
             orientation: "vertical",
             value: max_cdf_standard_dev/2
         });

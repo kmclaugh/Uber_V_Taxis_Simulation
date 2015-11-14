@@ -1,21 +1,54 @@
-var timer = null;
-var real_time_per_step = 200;
-var uber_list = [];
-var passengers_list = [];
-var total_steps = 0;
-var total_rides_started = 0;
-var total_rides_completed = 0;
-var total_wait_time = 0;
-var total_ride_time = 0;
-var total_ride_price = 0;
+//Macros
+var real_time_per_step;
+var base_price;
+var taxi_price;
+
+//Gloabls
+var timer;
 var the_grid;
-var current_surge = 1;
-var base_price = 2.5;
-var taxi_price = 3;
-var current_total_wait_time = 0;
-var previous_total_weight_time = 0;
-var current_demand = 0;
+var uber_list;
+var passengers_list;
+var current_surge;
+
+//Stats
+var total_steps;
+var total_rides_started;
+var total_rides_completed;
+var total_wait_time;
+var total_ride_time;
+var total_ride_price;
+var current_total_wait_time;
+var previous_total_weight_time;
+var current_demand;
 var current_total_ubers;
+
+function reset_global_variables(){
+    /*Sets the global vairables*/
+    //Macros
+    real_time_per_step = 200;
+    base_price = 2.5;
+    taxi_price = 3;
+    
+    //Gloabls
+    timer = null;
+    the_grid;
+    uber_list = [];
+    passengers_list = [];
+    current_surge = 1;
+    
+    //Stats
+    total_steps = 0;
+    total_rides_started = 0;
+    total_rides_completed = 0;
+    total_wait_time = 0;
+    total_ride_time = 0;
+    total_ride_price = 0;
+    current_total_wait_time = 0;
+    previous_total_weight_time = 0;
+    current_demand = 0;
+    current_total_ubers;
+}
+reset_global_variables();
 
 $(window).load(function () {
     
@@ -30,6 +63,9 @@ $(window).load(function () {
         
         
         $("#start").click(function() {
+            $('#mean').slider('disable');
+            $('#standard_dev').slider('disable');
+            
             if (timer !== null) return;
             timer = window.setInterval(function(){
                time_step();
@@ -38,24 +74,17 @@ $(window).load(function () {
         
         $("#stop").click(function() {
             clearInterval(timer);
-            timer = null
+            timer = null;
         });
         
-        $('#time_step').click(function(){
-            car.move();
-        });
-        
-        $('#move_north').click(function(){
-            car.move_north();
-        });
-        $('#move_south').click(function(){
-            car.move_south();
-        });
-        $('#move_east').click(function(){
-            car.move_east();
-        });
-        $('#move_west').click(function(){
-            car.move_west();
+        $("#reset").click(function() {
+            clearInterval(timer);
+            reset_global_variables();
+            update_stats();
+            the_grid.reset();
+            generate_data();
+            $('#mean').slider('enable');
+            $('#standard_dev').slider('enable');
         });
         
         $("#demand_slider").slider({
@@ -110,8 +139,12 @@ function time_step(){
         current_surge += minus_surge;
         previous_total_weight_time = current_total_wait_time_rounded;
     }
-    
     total_steps += 1;
+    update_stats()
+}
+
+function update_stats(){
+    /*Updates the statistics at the end of a time step*/
     $('#total_steps').text(total_steps);
     $('#current_total_wait_time').text(current_total_wait_time);
     $('#current_surge').text(current_surge);
@@ -438,6 +471,23 @@ function grid_class(size){
         return self.html;
     }
     
+    this.reset = function(){
+        /*Clears passengers from cells and resets the styles*/
+        for (y=0; y<self.array.length; y++){
+            var row = self.array[y];
+            for (x=0; x<row.length; x++){
+                var cell = row[x];
+                cell.passengers = [];
+            }
+        }
+        $('.has_car').each(function(){
+            $(this).removeClass('has_car');
+        });
+        $('.has_passenger').each(function(){
+            $(this).removeClass('has_passenger');
+        });
+    }
+    
     this.pick_random_cell = function(){
         /*picks a random, non-obstacle cell and returns the cell and a random heading from that cell*/
         var obstacle = true;
@@ -478,11 +528,9 @@ function grid_class(size){
         for (y=0; y<self.array.length; y++){
             var row = self.array[y];
             for (x=0; x<row.length; x++){
-                
                 var cell = row[x];
                 
                 var valid_options = {};
-                
                 if (cell.headings.north == true){
                     var heading_options = self.find_valid_options(cell, 'north');
                     valid_options['north'] = heading_options;

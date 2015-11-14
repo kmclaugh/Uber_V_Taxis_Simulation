@@ -21,13 +21,17 @@
                     <div class='row'>
                     <div class='col-md-1'></div>
                     <div class='col-md-10'>
-                        <input id="mean" class='cdf_slider' type="text" />
+                        <div class='mean_container'>
+                            <input id="mean" class='cdf_slider' type="text" />
+                        </div>
                     </div>
                     <div class='col-md-1'></div>
                 </div>
                 <div class='row'>
                     <div class='col-md-1'>
-                        <input id="standard_dev" class='cdf_slider' type="text" />
+                        <div class='standard_dev_container'>
+                            <input id="standard_dev" class='cdf_slider' type="text" />
+                        </div>
                     </div>
                     <div class='col-md-11'>
                         <div id="graph"></div>
@@ -60,10 +64,7 @@
             <div class='row'>
                 <button id='start'>start</button>
                 <button id='stop'>stop</button>
-                <button id='move_north'>/\</button>
-                <button id='move_south'>\/</button>
-                <button id='move_east'>></button>
-                <button id='move_west'><</button>
+                <button id='reset'>reset</button>
             </div>
         </div>
     </body>
