@@ -12,13 +12,14 @@
         <script type="text/javascript" src="bootstrap-slider.js"></script>
         <script type="text/javascript" src="uber_v_taxis.js"></script>
         <script type="text/javascript" src="uber_cdf.js"></script>
+        <script type="text/javascript" src="real_time.js"></script>
         <link rel="stylesheet" href="uber_v_taxis.css">
         <link rel="stylesheet" href="bootstrap-slider.css">
     </head>
     <body>
         <div class='container'>
+            
                 <div class='row'>
-                    <div class='row'>
                     <div class='col-md-1'></div>
                     <div class='col-md-10'>
                         <div class='mean_container'>
@@ -36,8 +37,19 @@
                     <div class='col-md-11'>
                         <div id="graph"></div>
                     </div>
-                    
                 </div>
+                
+                <div class='row'>
+                    <div class='col-md-1'>
+                        <div class='standard_dev_container'>
+                            <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
+                        </div>
+                    </div>
+                    <div class='col-md-11'>
+                        <div id="demand_graph"></div>
+                    </div>
+                </div>
+                
                 <div class='col-md-9'>
                     <div id='grid'></div>
                 </div>
@@ -49,14 +61,7 @@
                         <div><span>current_total_ubers </span><span id='current_total_ubers'>0</span></div>
                         <div><span>current_total_wait_time </span><span id='current_total_wait_time'>0</span></div>
                         <div><span>current_surge </span><span id='current_surge'>1</span></div>
-                    </div>
-                    <div class='row'>
-                        <div class='col-md-6'>
-                            <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
-                        </div>
-                        <div class='col-md-6'>
-                            <input id='current_demand' value='0'/>
-                        </div>
+                        <div><span>current_time </span><span id='current_time'>00:00</span></div>
                     </div>
                 </div>
                 

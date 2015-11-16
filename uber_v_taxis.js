@@ -1,5 +1,6 @@
 //Macros
 var real_time_per_step;
+var simulation_time_per_step;
 var base_price;
 var taxi_price;
 
@@ -9,6 +10,7 @@ var the_grid;
 var uber_list;
 var passengers_list;
 var current_surge;
+var simulation_time;
 
 //Stats
 var total_steps;
@@ -21,11 +23,13 @@ var current_total_wait_time;
 var previous_total_weight_time;
 var current_demand;
 var current_total_ubers;
+var demand_data = [];
 
 function reset_global_variables(){
     /*Sets the global vairables*/
     //Macros
-    real_time_per_step = 200;
+    real_time_per_step = 100;
+    simulation_time_per_step = 1;//min
     base_price = 2.5;
     taxi_price = 3;
     
@@ -35,6 +39,9 @@ function reset_global_variables(){
     uber_list = [];
     passengers_list = [];
     current_surge = 1;
+    simulation_start_time = new Date(2015, 11, 15, 9, 0);
+    simulation_end_time = new Date(2015, 11, 15, 23, 59);
+    simulation_time = new Date(simulation_start_time);
     
     //Stats
     total_steps = 0;
@@ -140,7 +147,9 @@ function time_step(){
         previous_total_weight_time = current_total_wait_time_rounded;
     }
     total_steps += 1;
+    simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
     update_stats()
+    update_demand_graph(demand_data);
 }
 
 function update_stats(){
@@ -149,6 +158,25 @@ function update_stats(){
     $('#current_total_wait_time').text(current_total_wait_time);
     $('#current_surge').text(current_surge);
     $('#current_total_ubers').text(current_total_ubers);
+    
+    var min = simulation_time.getMinutes();
+    if (min < 10) {
+        min = "0" + min;
+    }
+    var hr = simulation_time.getHours();
+    if (hr < 12){
+        var ampm = 'am';
+    }
+    else if (hr == 12){
+        var ampm = 'pm';
+        
+    }
+    else {
+        hr = hr -12;
+        var ampm = 'pm';
+    }
+    var current_time_string = hr + ':' + min + ' ' + ampm;
+    $('#current_time').text(current_time_string);
 }
         
 
