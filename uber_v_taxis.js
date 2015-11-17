@@ -24,6 +24,7 @@ var previous_total_weight_time;
 var current_demand;
 var current_total_ubers;
 var demand_data = [];
+var driver_data = [];
 
 function reset_global_variables(){
     /*Sets the global vairables*/
@@ -54,6 +55,8 @@ function reset_global_variables(){
     previous_total_weight_time = 0;
     current_demand = 0;
     current_total_ubers;
+    demand_data = [];
+    driver_data = [];
 }
 reset_global_variables();
 
@@ -92,6 +95,8 @@ $(window).load(function () {
             generate_data();
             $('#mean').slider('enable');
             $('#standard_dev').slider('enable');
+            var svg = d3.select('#demand_graph_svg');
+            svg.select('.line').remove();
         });
         
         $("#demand_slider").slider({
@@ -149,7 +154,7 @@ function time_step(){
     total_steps += 1;
     simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
     update_stats()
-    update_demand_graph(demand_data);
+    update_demand_graph(demand_data, driver_data);
 }
 
 function update_stats(){

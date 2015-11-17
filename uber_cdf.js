@@ -35,7 +35,7 @@ $(window).load(function () {
         
         var uber_cdf_data = generate_data();
         
-        draw_graph(uber_cdf_data);
+        lineFunc = draw_graph(uber_cdf_data);
         
     });
 });
