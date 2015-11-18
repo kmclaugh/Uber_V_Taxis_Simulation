@@ -25,8 +25,12 @@ var current_demand;
 var current_total_ubers;
 var demand_data = [];
 var driver_data = [];
-var price_data = [];
+var surge_data = [];
 var average_ride_price;
+var average_ride_time;
+var average_wait_time;
+var failed_rides;
+var current_failed_rides;
 
 function reset_global_variables(){
     /*Sets the global vairables*/
@@ -42,7 +46,7 @@ function reset_global_variables(){
     uber_list = [];
     passengers_list = [];
     current_surge = 1;
-    simulation_start_time = new Date(2015, 11, 15, 9, 0);
+    simulation_start_time = new Date(2015, 11, 15, 12, 0);
     simulation_end_time = new Date(2015, 11, 15, 23, 59);
     simulation_time = new Date(simulation_start_time);
     
@@ -59,8 +63,10 @@ function reset_global_variables(){
     current_total_ubers;
     demand_data = [];
     driver_data = [];
-    price_data = [];
+    surge_data = [];
     average_ride_price = 0;
+    failed_rides = 0;
+    current_failed_rides = 0;
 }
 reset_global_variables();
 
@@ -138,10 +144,10 @@ function time_step(){
     }
     
     current_total_wait_time = 0;
+    current_failed_rides = 0;
     for (p=0; p<passengers_list.length; p++){
         passenger = passengers_list[p];
-        passenger.current_wait_time += 1;
-        current_total_wait_time += passenger.current_wait_time;
+        passenger.time_step_logic();
     }
     if (current_total_wait_time > previous_total_weight_time + 100){
         var current_total_wait_time_rounded = Math.floor(current_total_wait_time / 100) * 100;
@@ -157,8 +163,10 @@ function time_step(){
     }
     total_steps += 1;
     simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
-    update_stats()
-    update_demand_graph(demand_data, driver_data, price_data);
+    update_stats();
+    //if (total_steps % 5 == 0){
+        update_demand_graph(demand_data, driver_data, surge_data);
+    //}
 }
 
 function update_stats(){
@@ -168,6 +176,8 @@ function update_stats(){
     $('#current_surge').text(current_surge);
     $('#current_total_ubers').text(current_total_ubers);
     $('#average_ride_price').text(average_ride_price);
+    $('#average_ride_time').text(average_ride_time);
+    $('#average_wait_time').text(average_wait_time);
     
     var min = simulation_time.getMinutes();
     if (min < 10) {
@@ -214,8 +224,24 @@ function passenger_class(grid){
     this.start_step = total_steps;
     this.wait_time;
     this.current_wait_time = 0;
-    
+    this.will_wait = 30;
     this.current_travel_time = 0;
+    
+    this.time_step_logic = function(){
+        passenger.current_wait_time += 1;
+        current_total_wait_time += passenger.current_wait_time;
+        //if (this.current_wait_time > this.will_wait){
+        //    this.gave_up();
+        //}
+    }
+    
+    this.gave_up = function(){
+        failed_rides += 1;
+        current_failed_rides += 1;
+        var index = passengers_list.indexOf(this);
+        passengers_list.splice(index, 1);
+        this.remove_from();
+    }
     
     this.picked_up = function(){
         /*Logic for being picked up by the car*/
@@ -224,8 +250,7 @@ function passenger_class(grid){
         this.wait_time = total_steps+1 - this.start_step;
         total_rides_started += 1;
         total_wait_time += this.wait_time;
-        var average_wait_time = total_wait_time/total_rides_started;
-        $('#average_wait_time').text(average_wait_time);
+        average_wait_time = total_wait_time/total_rides_started;
         var index = passengers_list.indexOf(this);
         passengers_list.splice(index, 1);
     }
@@ -234,8 +259,7 @@ function passenger_class(grid){
         /*logic for being dropped off*/
         total_ride_time += this.destination_travel_time;
         total_rides_completed += 1;
-        var average_ride_time = total_ride_time/total_rides_completed;
-        $('#average_ride_time').text(average_ride_time);
+        average_ride_time = total_ride_time/total_rides_completed;
         total_ride_price += this.destination_travel_time * current_price;
         average_ride_price = total_ride_price/total_rides_completed;
     }

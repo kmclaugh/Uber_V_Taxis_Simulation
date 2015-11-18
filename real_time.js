@@ -1,14 +1,22 @@
+var xRangeDemand;
+var y0RangeDemand;
+var y1RangeDemand;
+var demand_line_function;
+var surge_line_function;
+var demand_path;
+var driver_path;
+var surge_path;
 
 $(window).load(function () {
     
     $(document).ready(function () {
         
-        draw_demand_graph(demand_data, driver_data, price_data, false, true);
+        draw_demand_graph(demand_data, driver_data, surge_data, false, true);
         
     });
 });
 
-function update_demand_graph(passenger_data, driver_data, price_data){
+function update_demand_graph(passenger_data, driver_data, surge_data){
     var new_demand = Number($('#demand_slider').slider('getValue'));
     var current_sim_time = new Date(simulation_time);
     var new_passenger_data = {x:current_sim_time, y:new_demand};
@@ -17,16 +25,16 @@ function update_demand_graph(passenger_data, driver_data, price_data){
     var new_driver_data = {x:current_sim_time, y :current_total_ubers};
     driver_data.push(new_driver_data);
     
-    var new_price_data = {x:current_sim_time, y:average_ride_price};
-    price_data.push(new_price_data);
+    var new_surge_data = {x:current_sim_time, y:current_surge};
+    surge_data.push(new_surge_data);
     
     var svg = d3.select('#demand_graph_svg_g');
-    svg.select('.line').remove();
-    draw_demand_graph(passenger_data, driver_data, price_data, svg, false);
+    //svg.select('.line').remove();
+    draw_demand_graph(passenger_data, driver_data, surge_data, svg, false);
         
 }
 
-function draw_demand_graph(passenger_data, driver_data, price_data, svg, create){
+function draw_demand_graph(passenger_data, driver_data, surge_data, svg, create){
    var margin = {
         top: 30,
         right: 50,
@@ -46,40 +54,36 @@ function draw_demand_graph(passenger_data, driver_data, price_data, svg, create)
                     .attr("transform", 
                           "translate(" + margin.left + "," + margin.top + ")")
                     .attr('id', 'demand_graph_svg_g');
-    }
-    
-    //x-range and domain are time from the start time time to the end time
-    var xRange = d3.time.scale()
-        .range([0, width])
-        .domain([simulation_start_time, simulation_end_time]);
-    
-    //y0 is the uber cars and demand y-axis
-    var y0Range = d3.scale.linear()
-        .range([height, 0])
-        .domain([0, 100]);
-    //y1 is the price y-axis
-    var y1Range = d3.scale.linear()
-        .range([height, 0])
-        .domain([0, 500]);
-    
-    if (create == true){
+        
+        //x-range and domain are time from the start time time to the end time
+        xRangeDemand = d3.time.scale()
+            .range([0, width])
+            .domain([simulation_start_time, simulation_end_time]);
+        
+        //y0 is the uber cars and demand y-axis
+        y0RangeDemand = d3.scale.linear()
+            .range([height, 0])
+            .domain([0, 100]);
+        //y1 is the price y-axis
+        y1RangeDemand = d3.scale.linear()
+            .range([height, 0])
+            .domain([0, 50]);
+
         var xAxis = d3.svg.axis()
-            .scale(xRange)
+            .scale(xRangeDemand)
             .ticks(6);
           
         var yAxisLeft = d3.svg.axis()
-            .scale(y0Range)
+            .scale(y0RangeDemand)
             .tickSize(5)
             .orient('left')
             .tickSubdivide(true);
         
-        var commasFormatter = d3.format(",.0f")
         var yAxisRight = d3.svg.axis()
-            .scale(y1Range)
+            .scale(y1RangeDemand)
             .tickSize(5)
             .orient('right')
             .tickSubdivide(true)
-            .tickFormat(function(d) { return "$" + commasFormatter(d); });
       
         //add the x-axis
         svg.append('svg:g')
@@ -114,10 +118,10 @@ function draw_demand_graph(passenger_data, driver_data, price_data, svg, create)
             
         
         // add legend
-        dataset = [passenger_data, driver_data];
+        dataset = [passenger_data, driver_data, surge_data];
         var color_hash = {  0 : ["passengers", "blue"],
 					    1 : ["uber drivers", "orange"],
-					    2 : ["cost/ride", "green"]
+					    2 : ["current surge", "red"]
 					  }   
         var legend = d3.select('#demand_svg').append("g")
             .attr("class", "legend")
@@ -157,48 +161,52 @@ function draw_demand_graph(passenger_data, driver_data, price_data, svg, create)
                   var text = color_hash[dataset.indexOf(d)][0];
                   return text;
                 });
+        
+        demand_line_function = d3.svg.line()
+            .x(function(d) {
+              return xRangeDemand(d.x);
+            })
+            .y(function(d) {
+              return y0RangeDemand(d.y);
+            })
+            .interpolate('basis');
+    
+        surge_line_function = d3.svg.line()
+            .x(function(d) {
+              return xRangeDemand(d.x);
+            })
+            .y(function(d) {
+              return y1RangeDemand(d.y);
+            })
+            .interpolate('basis');
+        
+        demand_path = svg.append('svg:path')
+            .attr('d', demand_line_function(passenger_data))
+            .attr('stroke', 'blue')
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('class', 'line');
+            
+        driver_path = svg.append('svg:path')
+            .attr('d', demand_line_function(driver_data))
+            .attr('stroke', 'orange')
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('class', 'line');
+        
+        surge_path = svg.append('svg:path')
+            .attr('d', surge_line_function(surge_data))
+            .attr('stroke', 'red')
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('class', 'line');
     }
     
-  
-    var demand_line_function = d3.svg.line()
-        .x(function(d) {
-          return xRange(d.x);
-        })
-        .y(function(d) {
-          return y0Range(d.y);
-        })
-        .interpolate('basis');
-    
-    var price_line_function = d3.svg.line()
-        .x(function(d) {
-          return xRange(d.x);
-        })
-        .y(function(d) {
-          return y1Range(d.y);
-        })
-        .interpolate('basis');
-    
-    svg.append('svg:path')
-        .attr('d', demand_line_function(passenger_data))
-        .attr('stroke', 'blue')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none')
-        .attr('class', 'line');
-        
-    svg.append('svg:path')
-        .attr('d', demand_line_function(driver_data))
-        .attr('stroke', 'orange')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none')
-        .attr('class', 'line');
-    
-    svg.append('svg:path')
-        .attr('d', price_line_function(price_data))
-        .attr('stroke', 'red')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none')
-        .attr('class', 'line');
-    
-    return demand_line_function;
+    demand_path
+        .attr("d", demand_line_function(passenger_data));
+    driver_path
+        .attr("d", demand_line_function(driver_data));
+    surge_path
+        .attr("d", surge_line_function(surge_data));
 }
     
