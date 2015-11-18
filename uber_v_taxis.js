@@ -25,6 +25,8 @@ var current_demand;
 var current_total_ubers;
 var demand_data = [];
 var driver_data = [];
+var price_data = [];
+var average_ride_price;
 
 function reset_global_variables(){
     /*Sets the global vairables*/
@@ -57,6 +59,8 @@ function reset_global_variables(){
     current_total_ubers;
     demand_data = [];
     driver_data = [];
+    price_data = [];
+    average_ride_price = 0;
 }
 reset_global_variables();
 
@@ -154,7 +158,7 @@ function time_step(){
     total_steps += 1;
     simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
     update_stats()
-    update_demand_graph(demand_data, driver_data);
+    update_demand_graph(demand_data, driver_data, price_data);
 }
 
 function update_stats(){
@@ -163,6 +167,7 @@ function update_stats(){
     $('#current_total_wait_time').text(current_total_wait_time);
     $('#current_surge').text(current_surge);
     $('#current_total_ubers').text(current_total_ubers);
+    $('#average_ride_price').text(average_ride_price);
     
     var min = simulation_time.getMinutes();
     if (min < 10) {
@@ -232,8 +237,7 @@ function passenger_class(grid){
         var average_ride_time = total_ride_time/total_rides_completed;
         $('#average_ride_time').text(average_ride_time);
         total_ride_price += this.destination_travel_time * current_price;
-        var average_ride_price = total_ride_price/total_rides_completed;
-        $('#average_ride_price').text(average_ride_price);
+        average_ride_price = total_ride_price/total_rides_completed;
     }
     
     this.set_on = function(x,y){
