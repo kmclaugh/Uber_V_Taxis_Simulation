@@ -58,7 +58,7 @@ function generate_data(){
         uber_cdf_data.push(uber_cdf_datum);
         
         for (u=0; u<this_surge; u++){
-            uber_car = new car_class(type='uber', grid=the_grid, surge_needed=surge, max_cruising_time=20, current_price=false, driving=false);
+            uber_car = new car_class(type='uber', grid=uber_grid, surge_needed=surge, max_cruising_time=20, current_price=false, driving=false);
             uber_list.push(uber_car);
         }
     }
