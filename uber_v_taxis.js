@@ -36,7 +36,7 @@ function reset_global_variables(){
     /*Sets the global vairables*/
     //Macros
     real_time_per_step = 100;
-    simulation_time_per_step = 1;//min
+    simulation_time_per_step = 30;//seconds
     base_price = 2.5;
     taxi_price = 3;
     
@@ -149,20 +149,32 @@ function time_step(){
         passenger = passengers_list[p];
         passenger.time_step_logic();
     }
+    
+    //Surge logic
+    var average_current_wait = current_total_wait_time/passengers_list.length;
+    console.log(average_current_wait, current_total_wait_time, passengers_list.length, current_surge)
     if (current_total_wait_time > previous_total_weight_time + 100){
         var current_total_wait_time_rounded = Math.floor(current_total_wait_time / 100) * 100;
-        var add_surge = (current_total_wait_time_rounded - previous_total_weight_time)/100;
+        var add_surge = (current_total_wait_time_rounded - previous_total_weight_time)/100/10;
         current_surge += add_surge;
         previous_total_weight_time = current_total_wait_time_rounded;
     }
-    else if (current_total_wait_time < previous_total_weight_time){
+    else if (current_total_wait_time <= previous_total_weight_time){
         var current_total_wait_time_rounded = Math.floor(current_total_wait_time / 100) * 100;
-        var minus_surge = (current_total_wait_time_rounded - previous_total_weight_time)/100;
+        if (current_total_wait_time_rounded < previous_total_weight_time) {
+            var minus_surge = (current_total_wait_time_rounded - previous_total_weight_time)/100/10;
+        }
+        else if (current_surge > 1){
+            var minus_surge = -0.1;
+        }
+        else{
+            var minus_surge = 0;
+        }
         current_surge += minus_surge;
         previous_total_weight_time = current_total_wait_time_rounded;
     }
     total_steps += 1;
-    simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
+    simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats();
     //if (total_steps % 5 == 0){
         update_demand_graph(demand_data, driver_data, surge_data);

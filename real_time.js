@@ -67,7 +67,7 @@ function draw_demand_graph(passenger_data, driver_data, surge_data, svg, create)
         //y1 is the price y-axis
         y1RangeDemand = d3.scale.linear()
             .range([height, 0])
-            .domain([0, 50]);
+            .domain([0, 10]);
 
         var xAxis = d3.svg.axis()
             .scale(xRangeDemand)

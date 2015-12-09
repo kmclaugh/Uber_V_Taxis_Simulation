@@ -1,5 +1,5 @@
-var max_cdf_surge = 30;
-var max_cdf_standard_dev = Math.round(max_cdf_surge/5);
+var max_cdf_surge = 5;
+var max_cdf_standard_dev = 2.5;
 var number_of_drivers = 100
 
 $(window).load(function () {
@@ -9,18 +9,18 @@ $(window).load(function () {
         $("#mean").slider({
             ticks : [0, max_cdf_surge/2, max_cdf_surge],
             scale: 'linear',
-            step: 1,
-            ticks_snap_bounds: 1,
-            value: max_cdf_surge/2
+            step: .1,
+            ticks_snap_bounds: .1,
+            value: 1.5
         });
         
         $('#standard_dev').slider({
             reversed : true,
-            ticks : [1, max_cdf_standard_dev/2, max_cdf_standard_dev],
+            ticks : [.1, max_cdf_standard_dev/2, max_cdf_standard_dev],
             scale: 'linear',
             step: .1,
             orientation: "vertical",
-            value: max_cdf_standard_dev/2
+            value: .3
         });
         
          $(".cdf_slider").on("slide", function(slideEvt) {
@@ -48,7 +48,7 @@ function generate_data(){
     uber_list = [];
     
     var previous_surge = 0;
-    for (surge=0; surge<max_cdf_surge; surge++){
+    for (surge=1; surge<max_cdf_surge; surge+=0.1){
         var percent_of_drivers = cdf(x=surge, mean=mean, variance=Math.pow(standard_dev, 2));
         var total_for_surge = Math.ceil(number_of_drivers * percent_of_drivers);
         var this_surge = total_for_surge - previous_surge;
@@ -58,7 +58,7 @@ function generate_data(){
         uber_cdf_data.push(uber_cdf_datum);
         
         for (u=0; u<this_surge; u++){
-            uber_car = new car_class(type='uber', grid=the_grid, surge_needed=surge, max_cruising_time=10, current_price=false, driving=false);
+            uber_car = new car_class(type='uber', grid=the_grid, surge_needed=surge, max_cruising_time=20, current_price=false, driving=false);
             uber_list.push(uber_car);
         }
     }
@@ -95,7 +95,7 @@ function draw_graph(the_data){
                 
     var xRange = d3.scale.linear()
         .range([0, width])
-        .domain([d3.min(the_data, function(d) {return d.x;}), d3.max(the_data, function(d) {return d.x;})]);
+        .domain([0, max_cdf_surge]);
       
     var yRange = d3.scale.linear()
         .range([height, 0])
