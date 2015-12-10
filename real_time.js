@@ -11,25 +11,23 @@ $(window).load(function () {
     
     $(document).ready(function () {
         
-        draw_demand_graph(demand_data, driver_data, surge_data, false, true);
+        draw_demand_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, false, true);
         
     });
 });
 
-function update_demand_graph(passenger_data, driver_data, surge_data){
+function update_demand_graph(passenger_data, driver_data, surge_data, current_total_cars){
     var new_demand = Number($('#demand_slider').slider('getValue'));
     var current_sim_time = new Date(simulation_time);
     var new_passenger_data = {x:current_sim_time, y:new_demand};
     passenger_data.push(new_passenger_data);
-    
-    var new_driver_data = {x:current_sim_time, y :current_total_ubers};
+    var new_driver_data = {x:current_sim_time, y :current_total_cars};
     driver_data.push(new_driver_data);
     
-    var new_surge_data = {x:current_sim_time, y:current_surge};
+    var new_surge_data = {x:current_sim_time, y:uber_grid.current_surge};
     surge_data.push(new_surge_data);
     
     var svg = d3.select('#demand_graph_svg_g');
-    //svg.select('.line').remove();
     draw_demand_graph(passenger_data, driver_data, surge_data, svg, false);
         
 }
