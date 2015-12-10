@@ -45,24 +45,41 @@
                             <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
                         </div>
                     </div>
-                    <div class='col-md-11'>
-                        <div id="demand_graph"></div>
+                    <div class='col-md-5'>
+                        <div id="taxi_output_graph"></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div id="uber_output_graph"></div>
                     </div>
                 </div>
                 <div class='row'>
-                    <div><span>Average wait time </span><span id='uber_average_wait_time'>0</span></div>
-                    <div><span>Average ride time </span><span id='uber_average_ride_time'>0</span></div>
-                    <div><span>Average ride price </span><span id='uber_average_ride_price'>0</span></div>
-                    <div><span>current_total_ubers </span><span id='uber_current_total_ubers'>0</span></div>
-                    <div><span>current_total_wait_time </span><span id='uber_current_total_wait_time'>0</span></div>
-                    <div><span>current_surge </span><span id='uber_current_surge'>1</span></div>
-                    <div><span>current_time </span><span id='uber_current_time'>00:00</span></div>
+                    <div><span>current_time </span><span id='current_time'>00:00</span></div>
                 </div>
-                <div class='col-md-5'>
-                    <div id='taxi_grid' class='grid'></div>
+                <div class='row'>
+                    <div class='col-md-5'>
+                        <div><span>Average wait time </span><span id='taxi_average_wait_time'>0</span></div>
+                        <div><span>Longest Wait Time </span><span id='taxi_longest_wait_time'>0</span></div>
+                        <div><span>Average ride price </span><span id='taxi_average_ride_price'>0</span></div>
+                        <div><span>current_total_taxis </span><span id='taxi_current_total_taxis'>0</span></div>
+                        <div><span>current_total_wait_time </span><span id='taxi_current_total_wait_time'>0</span></div>
+                        <div><span>current_surge </span><span id='taxi_current_surge'>1</span></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div><span>Average wait time </span><span id='uber_average_wait_time'>0</span></div>
+                        <div><span>Longest Wait Time </span><span id='uber_longest_wait_time'>0</span></div>
+                        <div><span>Average ride price </span><span id='uber_average_ride_price'>0</span></div>
+                        <div><span>current_total_ubers </span><span id='uber_current_total_ubers'>0</span></div>
+                        <div><span>current_total_wait_time </span><span id='uber_current_total_wait_time'>0</span></div>
+                        <div><span>current_surge </span><span id='uber_current_surge'>1</span></div>
+                    </div>
                 </div>
-                <div class='col-md-5'>
-                    <div id='uber_grid' class='grid'></div>
+                <div class='row'>
+                    <div class='col-md-5'>
+                        <div id='taxi_grid' class='grid'></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div id='uber_grid' class='grid'></div>
+                    </div>
                 </div>
                 
                 

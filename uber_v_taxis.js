@@ -149,22 +149,27 @@ function time_step(){
     total_steps += 1;
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
-    update_demand_graph(uber_grid);
+    update_stats(taxi_grid);
+    update_output_graph(uber_grid);
+    update_output_graph(taxi_grid)
 }
 
 function update_stats(grid){
     /*Updates the statistics at the end of a time step*/
-    average_ride_time = grid.total_ride_time/grid.total_rides_completed;
-    average_wait_time = grid.total_wait_time/grid.total_rides_started;
-    average_ride_price = grid.total_ride_price/grid.total_rides_completed;
-    price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
+    var average_ride_time = grid.total_ride_time/grid.total_rides_completed;
+    var average_wait_time = grid.total_wait_time/grid.total_rides_started;
+    var average_ride_price = grid.total_ride_price/grid.total_rides_completed;
+    var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
     $('#'+grid.type+'_total_steps').text(total_steps);
-    $('#'+grid.type+'_current_total_wait_time').text(uber_grid.current_total_wait_time);
-    $('#'+grid.type+'_current_surge').text(uber_grid.current_surge);
-    $('#'+grid.type+'_current_total_ubers').text(uber_grid.current_total_cars);
     $('#'+grid.type+'_average_ride_price').text(price_per_minute);
     $('#'+grid.type+'_average_ride_time').text(average_ride_time);
     $('#'+grid.type+'_average_wait_time').text(average_wait_time);
+    $('#'+grid.type+'_current_total_wait_time').text(grid.current_total_wait_time);
+    if (grid.type == 'uber') {
+        
+        $('#'+grid.type+'_current_surge').text(grid.current_surge);
+        $('#'+grid.type+'_current_total_ubers').text(grid.current_total_cars);
+    }
     
     var min = simulation_time.getMinutes();
     if (min < 10) {
