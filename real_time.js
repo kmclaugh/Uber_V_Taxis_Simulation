@@ -16,19 +16,18 @@ $(window).load(function () {
     });
 });
 
-function update_demand_graph(passenger_data, driver_data, surge_data, current_total_cars){
-    var new_demand = Number($('#demand_slider').slider('getValue'));
+function update_demand_graph(grid){
     var current_sim_time = new Date(simulation_time);
-    var new_passenger_data = {x:current_sim_time, y:new_demand};
-    passenger_data.push(new_passenger_data);
-    var new_driver_data = {x:current_sim_time, y :current_total_cars};
-    driver_data.push(new_driver_data);
+    var new_passenger_data = {x:current_sim_time, y:grid.passengers_list.length};
+    grid.demand_data.push(new_passenger_data);
+    var new_driver_data = {x:current_sim_time, y :grid.current_total_cars};
+    grid.driver_data.push(new_driver_data);
     
-    var new_surge_data = {x:current_sim_time, y:uber_grid.current_surge};
-    surge_data.push(new_surge_data);
+    var new_surge_data = {x:current_sim_time, y:grid.current_surge};
+    grid.surge_data.push(new_surge_data);
     
     var svg = d3.select('#demand_graph_svg_g');
-    draw_demand_graph(passenger_data, driver_data, surge_data, svg, false);
+    draw_demand_graph(grid.demand_data, grid.driver_data, grid.surge_data, svg, false);
         
 }
 

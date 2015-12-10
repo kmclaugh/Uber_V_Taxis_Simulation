@@ -45,7 +45,7 @@ function generate_data(){
     var standard_dev = Number($('#standard_dev').slider('getValue'));
     var uber_cdf_data = [];
     
-    uber_list = [];
+    //uber_list = [];
     
     var previous_surge = 0;
     for (surge=1; surge<max_cdf_surge; surge+=0.1){

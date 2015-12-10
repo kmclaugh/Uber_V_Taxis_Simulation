@@ -6,9 +6,10 @@ var taxi_price;
 
 //Globals
 var timer;
-var uber_grid;
 var simulation_time;
 var total_steps;
+var uber_grid;
+var taxi_grid;
 
 function reset_global_variables(){
     /*Sets the global vairables*/
@@ -18,18 +19,26 @@ function reset_global_variables(){
     base_uber = 0.5;
     taxi_price = 3;
     
-    //Gloabls
-    timer = null;
-    uber_grid;
-    uber_grid.car_list = [];
-    uber_grid.passengers_list = [];
-    uber_grid.current_surge = 1;
+    //Globals
     total_steps = 0;
     simulation_start_time = new Date(2015, 11, 15, 12, 0);
     simulation_end_time = new Date(2015, 11, 15, 23, 59);
     simulation_time = new Date(simulation_start_time);
+    timer = null;
+    //taxi
+    taxi_grid;
+    taxi_grid.car_list = [];
+    taxi_grid.passengers_list = [];
+    taxi_grid.current_surge = 1;
+    //uber
+    uber_grid;
+    uber_grid.car_list = [];
+    uber_grid.passengers_list = [];
+    uber_grid.current_surge = 1;
+    
     
     //Stats
+    //uber
     uber_grid.total_rides_started = 0;
     uber_grid.total_rides_completed = 0;
     uber_grid.total_wait_time = 0;
@@ -46,18 +55,45 @@ function reset_global_variables(){
     uber_grid.failed_rides = 0;
     uber_grid.current_failed_rides = 0;
     uber_grid.current_surge = 1;
+    //taxi
+    taxi_grid.total_rides_started = 0;
+    taxi_grid.total_rides_completed = 0;
+    taxi_grid.total_wait_time = 0;
+    taxi_grid.total_ride_time = 0;
+    taxi_grid.total_ride_price = 0;
+    taxi_grid.current_total_wait_time = 0;
+    taxi_grid.previous_total_weight_time = 0;
+    taxi_grid.current_demand = 0;
+    taxi_grid.current_total_cars;
+    taxi_grid.demand_data = [];
+    taxi_grid.driver_data = [];
+    taxi_grid.surge_data = [];
+    taxi_grid.average_ride_price = 0;
+    taxi_grid.failed_rides = 0;
+    taxi_grid.current_failed_rides = 0;
+    taxi_grid.current_surge = 1;
 }
 
 $(window).load(function () {
     
     $(document).ready(function () {
+        
+        
+        //uber
         uber_grid = new grid_class(18, 'uber_grid', 'uber');
         uber_grid.create_grid();
         uber_grid.add_headings();
         uber_grid.add_options();
         uber_grid.create_html();
-        reset_global_variables();
+        //taxi
+        taxi_grid = new grid_class(18, 'taxi_grid', 'taxi');
+        taxi_grid.create_grid();
+        taxi_grid.add_headings();
+        taxi_grid.add_options();
+        taxi_grid.create_html();
         
+        reset_global_variables();
+        create_taxis(5);
         
         $("#start").click(function() {
             $('#mean').slider('disable');
@@ -95,6 +131,7 @@ $(window).load(function () {
         });
         $("#demand_slider").on("slide", function(slideEvt) {
             uber_grid.current_demand = slideEvt.value;
+            taxi_grid.current_demand = slideEvt.value;
             $("#current_demand").val(slideEvt.value);
         });
         $('#current_demand').change(function(){
@@ -106,13 +143,13 @@ $(window).load(function () {
 });
 
 function time_step(){
-    
     uber_grid.time_step_logic();
+    taxi_grid.time_step_logic();
     
     total_steps += 1;
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
-    update_demand_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, uber_grid.current_total_cars);
+    update_demand_graph(uber_grid);
 }
 
 function update_stats(grid){
@@ -203,6 +240,14 @@ function passenger_class(grid){
     }
 }
 
+function create_taxis(number_of_taxis) {
+    /*Creates the given number of taxis and adds them to the taxi grid object*/
+    for (t=0; t<number_of_taxis; t++){
+        taxi = new car_class(type='taxi', grid=taxi_grid, surge_needed=0, max_cruising_time=0, current_price=taxi_price, driving=false);
+        taxi_grid.car_list.push(taxi);
+    }
+}
+
 function car_class(type, grid, surge_needed, max_cruising_time, current_price, driving){
     /*class for the car*/
     this.type = type;
@@ -226,7 +271,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
             this.move();
             if (this.passenger == false){
                 this.cruising_time += 1;
-                if (this.cruising_time >= this.max_cruising_time && this.grid.current_surge < this.surge_needed){
+                if (this.type == 'uber' && this.cruising_time >= this.max_cruising_time && this.grid.current_surge < this.surge_needed){
                     this.remove_from();
                     this.cruising_time = 0;
                     this.driving = false;
@@ -236,14 +281,21 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
             }
         }
         
-        else if (this.grid.current_surge >= this.surge_needed){
+        else if (this.type == 'uber' && this.grid.current_surge >= this.surge_needed){
             var random_cell = this.grid.pick_random_cell();
             this.heading = random_cell[1];
             this.set_on(random_cell[0].x, random_cell[0].y);
             this.driving = true;
             this.passenger_logic();
         }
-            
+        
+        else if (this.type == 'taxi'){//start the taxi
+            var random_cell = this.grid.pick_random_cell();
+            this.heading = random_cell[1];
+            this.set_on(random_cell[0].x, random_cell[0].y);
+            this.driving = true;
+            this.passenger_logic();
+        }
     }
     
     this.move = function(){
@@ -430,7 +482,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
 
 function grid_class(size, html_id, type){
     /*Class for carrying around grid info*/
-    self = this;
+    var self = this;
     this.size = size;
     this.array = [];
     this.html_id = html_id;
@@ -454,14 +506,15 @@ function grid_class(size, html_id, type){
     this.average_wait_time;
     this.failed_rides;
     this.current_failed_rides;
-    this.car_list;
-    this.passengers_list;
+    this.car_list = [];
+    this.passengers_list = [];
     this.current_surge = 1;
     
     this.time_step_logic = function(){
         this.current_total_cars = 0;
         for (c=0; c<this.car_list.length; c++){
             var car = this.car_list[c];
+            
             car.time_step_logic();
             if (car.driving == true){
                 this.current_total_cars += 1;
@@ -709,10 +762,10 @@ function grid_class(size, html_id, type){
                 var x_mod = x % 4;
                 var y_mod = y % 4;
                 if ((x_mod==2 || x_mod==3) && (y_mod==2 || y_mod==3)){
-                    var cell = new cell_class(x, y, true);
+                    var cell = new cell_class(x, y, true, this);
                 }
                 else{
-                    var cell = new cell_class(x, y, false);
+                    var cell = new cell_class(x, y, false, this);
                 }
                 row.push(cell);
             }
@@ -723,7 +776,7 @@ function grid_class(size, html_id, type){
 }
                 
 
-function cell_class(x, y, obstacle){
+function cell_class(x, y, obstacle, grid){
     /*Class for carrying around cell info*/
     this.x = x;
     this.y = y;
@@ -731,17 +784,17 @@ function cell_class(x, y, obstacle){
     this.headings = new headings;
     this.valid_options = {};
     this.html = '';
-    this.html_id = this.x+"-"+this.y;
+    this.html_id = grid.html_id + '_'+this.x+"-"+this.y;
     this.passengers = [];
     
     this.make_html = function(){
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
-            this.html = "<td id="+this.html_id+" x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+ heading_string + "</td>";
+            this.html = "<td id="+this.html_id+" x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "</td>";
         }
         else{
-            this.html = "<td id="+this.html_id+" class='obstacle' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+this.x+","+this.y+"</td>";
+            this.html = "<td id="+this.html_id+" class='obstacle' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"</td>";
         }
         return this.html;
     }       
