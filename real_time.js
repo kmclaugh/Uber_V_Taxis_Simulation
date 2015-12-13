@@ -11,28 +11,31 @@ $(window).load(function () {
     
     $(document).ready(function () {
         
-        draw_output_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, false, true, uber_grid);
-        draw_output_graph(taxi_grid.demand_data, taxi_grid.driver_data, taxi_grid.surge_data, false, true, taxi_grid);
+        draw_output_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, taxi_grid.demand_data, false, true, uber_grid);
+        //draw_output_graph(taxi_grid.demand_data, taxi_grid.driver_data, taxi_grid.surge_data, false, true, taxi_grid);
         
     });
 });
 
-function update_output_graph(grid){
+function update_output_graph(uber_grid, taxi_grid){
     var current_sim_time = new Date(simulation_time);
-    var new_passenger_data = {x:current_sim_time, y:grid.passengers_list.length};
-    grid.demand_data.push(new_passenger_data);
-    var new_driver_data = {x:current_sim_time, y :grid.current_total_cars};
-    grid.driver_data.push(new_driver_data);
+    //uber
+    var new_passenger_data = {x:current_sim_time, y:uber_grid.passengers_list.length};
+    uber_grid.demand_data.push(new_passenger_data);
+    var new_driver_data = {x:current_sim_time, y :uber_grid.current_total_cars};
+    uber_grid.driver_data.push(new_driver_data);
+    var new_surge_data = {x:current_sim_time, y:uber_grid.current_surge};
+    uber_grid.surge_data.push(new_surge_data);
     
-    var new_surge_data = {x:current_sim_time, y:grid.current_surge};
-    grid.surge_data.push(new_surge_data);
-    
-    var svg = d3.select('#'+grid.type+'_output_graph_svg_g');
-    draw_output_graph(grid.demand_data, grid.driver_data, grid.surge_data, svg, false, grid);
+    //taxi
+    var new_passenger_data = {x:current_sim_time, y:taxi_grid.passengers_list.length};
+    taxi_grid.demand_data.push(new_passenger_data);
+    var svg = d3.select('#uber_output_graph_svg_g');
+    draw_output_graph(grid.demand_data, grid.driver_data, grid.surge_data, taxi_grid.demand_data, svg, false, grid);
         
 }
 
-function draw_output_graph(passenger_data, driver_data, surge_data, svg, create, grid){
+function draw_output_graph(passenger_data, driver_data, surge_data, taxi_data, svg, create, grid){
    var margin = {
         top: 30,
         right: 50,
@@ -122,10 +125,11 @@ function draw_output_graph(passenger_data, driver_data, surge_data, svg, create,
         
         // add legend
         if (grid.type == 'uber') {
-            dataset = [passenger_data, driver_data, surge_data];
-            var color_hash = {  0 : ["passengers", "blue"],
-                   1 : ["uber drivers", "orange"],
-                   2 : ["current surge", "red"]
+            dataset = [passenger_data, taxi_data, driver_data, surge_data];
+            var color_hash = {  0 : ["uber requests", "blue"],
+                    1 : ['taxi requests', 'orange'],
+                   2 : ["uber drivers", "black"],
+                   3 : ["current surge", "red"]
                  }   
         }
         else if (grid.type == 'taxi') {
@@ -202,10 +206,18 @@ function draw_output_graph(passenger_data, driver_data, surge_data, svg, create,
             .attr('fill', 'none')
             .attr('class', 'line');
             
+        var taxi_path = svg.append('svg:path')
+            .attr('d', demand_line_function(taxi_data))
+            .attr('id', 'taxi_demand_path')
+            .attr('stroke', 'orange')
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('class', 'line');
+            
         var driver_path = svg.append('svg:path')
             .attr('d', demand_line_function(driver_data))
             .attr('id', grid.type+'driver_path')
-            .attr('stroke', 'orange')
+            .attr('stroke', 'black')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
             .attr('class', 'line');
@@ -221,9 +233,10 @@ function draw_output_graph(passenger_data, driver_data, surge_data, svg, create,
         }
         
     }
-    
     d3.select('#'+grid.type+'demand_path')
         .attr("d", demand_line_function(passenger_data));
+    d3.select('#taxi_demand_path')
+        .attr("d", demand_line_function(taxi_data));
     d3.select('#'+grid.type+'driver_path')
         .attr("d", demand_line_function(driver_data));
     if (grid.type == 'uber') {

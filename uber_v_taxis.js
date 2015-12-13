@@ -16,8 +16,9 @@ function reset_global_variables(){
     //Macros
     real_time_per_step = 100;
     simulation_time_per_step = 30;//seconds
-    base_uber = 0.5;
-    taxi_price = 3;
+    base_uber = $('#uber_base_price').val();
+    taxi_price = $('#taxi_price').val();
+    number_of_taxis = $('#number_of_taxis').val();
     
     //Globals
     total_steps = 0;
@@ -93,7 +94,18 @@ $(window).load(function () {
         taxi_grid.create_html();
         
         reset_global_variables();
-        create_taxis(5);
+        create_taxis(number_of_taxis);
+        
+        $('#uber_base_price').change(function(){
+            base_uber = $('#uber_base_price').val();
+        });
+        $('#taxi_price').change(function(){
+            taxi_price = $('#taxi_price').val();
+        });
+        $('#number_of_taxis').change(function(){
+            number_of_taxis = Number($('#number_of_taxis').val());
+            create_taxis(number_of_taxis);
+        });
         
         $("#start").click(function() {
             $('#mean').slider('disable');
@@ -150,8 +162,8 @@ function time_step(){
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
     update_stats(taxi_grid);
-    update_output_graph(uber_grid);
-    update_output_graph(taxi_grid)
+    update_output_graph(uber_grid, taxi_grid);
+    //update_output_graph(taxi_grid)
 }
 
 function update_stats(grid){
@@ -247,6 +259,7 @@ function passenger_class(grid){
 
 function create_taxis(number_of_taxis) {
     /*Creates the given number of taxis and adds them to the taxi grid object*/
+    taxi_grid.car_list = [];
     for (t=0; t<number_of_taxis; t++){
         taxi = new car_class(type='taxi', grid=taxi_grid, surge_needed=0, max_cruising_time=0, current_price=taxi_price, driving=false);
         taxi_grid.car_list.push(taxi);
@@ -327,6 +340,9 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
                 this.cruising_time = 0;
                 if (this.type == 'uber'){
                     this.current_price = this.grid.current_surge * base_uber;
+                }
+                else if (this.type == 'taxi'){
+                    this.current_price = taxi_price;
                 }
             }
         }
