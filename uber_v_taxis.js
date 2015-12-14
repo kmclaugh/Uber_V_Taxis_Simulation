@@ -159,17 +159,11 @@ function time_step(){
     taxi_grid.time_step_logic();
     
     total_steps += 1;
-<<<<<<< HEAD
-    simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
-    update_stats();
-    update_demand_graph(demand_data, driver_data, surge_data);
-=======
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
     update_stats(taxi_grid);
     update_output_graph(uber_grid, taxi_grid);
     //update_output_graph(taxi_grid)
->>>>>>> c2f37147db52c59fe63d43aef1ae1c5ac8825b83
 }
 
 function update_stats(grid){
@@ -177,11 +171,14 @@ function update_stats(grid){
     var average_ride_time = grid.total_ride_time/grid.total_rides_completed;
     var average_wait_time = grid.total_wait_time/grid.total_rides_started;
     var average_ride_price = grid.total_ride_price/grid.total_rides_completed;
+    var average_driver_salary = grid.total_money/grid.total_driver_time;// $/timestep
+    average_driver_salary = average_driver_salary * (1/simulation_time_per_step) * 60 * 60;// $/hour
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
     $('#'+grid.type+'_total_steps').text(total_steps);
     $('#'+grid.type+'_average_ride_price').text(price_per_minute);
-    $('#'+grid.type+'_longest_wait_time').text(grid.longest_wait_time);
-    $('#'+grid.type+'_average_wait_time').text(average_wait_time);
+    $('#'+grid.type+'_average_driver_salary').text(average_driver_salary);
+    $('#'+grid.type+'_longest_wait_time').text(convert_timesteps_to_time(grid.longest_wait_time));
+    $('#'+grid.type+'_average_wait_time').text(convert_timesteps_to_time(average_wait_time));
     $('#'+grid.type+'_current_total_wait_time').text(grid.current_total_wait_time);
     if (grid.type == 'uber') {
         
@@ -208,6 +205,22 @@ function update_stats(grid){
     var current_time_string = hr + ':' + min + ' ' + ampm;
     $('#current_time').text(current_time_string);
 }
+
+function convert_timesteps_to_time(time_steps){
+    /*Convert the given number of time steps to hours and minutes based on the sim time per timestep*/
+    if (isNaN(time_steps) == false){
+        time_steps = Math.floor(time_steps);
+    }
+    else{
+        time_steps = 0;
+    }
+    var total_seconds = time_steps * simulation_time_per_step;
+    var hours   = Math.floor(total_seconds / 3600);
+    var minutes = Math.floor((total_seconds - (hours * 3600)) / 60);
+    var seconds = total_seconds - (hours * 3600) - (minutes * 60);
+    var time_string = hours+':'+minutes+':'+seconds;
+    return time_string;
+}
     
 function passenger_class(grid){
     /*Class for the passenger*/
@@ -233,6 +246,9 @@ function passenger_class(grid){
         this.wait_time = total_steps+1 - this.start_step;
         this.grid.total_rides_started += 1;
         this.grid.total_wait_time += this.wait_time;
+        if (this.wait_time > this.grid.longest_wait_time) {
+            this.grid.longest_wait_time = this.wait_time;
+        }
         var index = this.grid.passengers_list.indexOf(this);
         this.grid.passengers_list.splice(index, 1);
     }
@@ -240,13 +256,10 @@ function passenger_class(grid){
     this.dropped_off = function(current_price){
         /*logic for being dropped off*/
         this.grid.total_ride_time += this.destination_travel_time;
-        console.log(this.grid.longest_ride_time, this.destination_travel_time)
-        if (this.grid.longest_ride_time < this.destination_travel_time) {
-            this.grid.longest_ride_time = this.destination_travel_time;
-            console.log(this.grid.longest_ride_time)
-        }
         this.grid.total_rides_completed += 1;
-        this.grid.total_ride_price += this.destination_travel_time * current_price;
+        var ride_price = this.destination_travel_time * current_price
+        this.grid.total_ride_price += ride_price;
+        return ride_price;
     }
     
     this.set_on = function(x,y){
@@ -308,6 +321,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
                     this.next_move = false
                 }
             }
+            this.grid.total_driver_time += 1;
         }
         
         else if (this.type == 'uber' && this.grid.current_surge >= this.surge_needed){
@@ -360,7 +374,8 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         else{
             this.passenger.current_travel_time += 1;
             if (this.passenger.current_travel_time == this.passenger.destination_travel_time){
-                this.passenger.dropped_off(this.current_price);
+                var ride_price = this.passenger.dropped_off(this.current_price);
+                this.grid.total_money += ride_price;
                 if (this.current_cell.passengers.length == 0){
                     $('#'+this.current_cell.html_id).removeClass('has_passenger');
                 }
@@ -541,7 +556,9 @@ function grid_class(size, html_id, type){
     this.car_list = [];
     this.passengers_list = [];
     this.current_surge = 1;
-    this.longest_ride_time = 0;
+    this.longest_wait_time = 0;
+    this.total_driver_time = 0;
+    this.total_money = 0;
     
     this.time_step_logic = function(){
         this.current_total_cars = 0;

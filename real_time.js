@@ -161,9 +161,8 @@ function draw_output_graph(passenger_data, driver_data, surge_data, taxi_data, s
                 .attr("width", 10)
                 .attr("height", 10)
                 .style("fill", function(d) {
-                    console.log(dataset.indexOf(d))
-                  var color = color_hash[dataset.indexOf(d)][1];
-                  return color;
+                    var color = color_hash[dataset.indexOf(d)][1];
+                    return color;
                 })
               
         legend.selectAll('text')
