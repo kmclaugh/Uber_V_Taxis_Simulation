@@ -164,9 +164,7 @@ function time_step(){
     total_steps += 1;
     simulation_time.setMinutes(simulation_time.getMinutes() + simulation_time_per_step);
     update_stats();
-    //if (total_steps % 5 == 0){
-        update_demand_graph(demand_data, driver_data, surge_data);
-    //}
+    update_demand_graph(demand_data, driver_data, surge_data);
 }
 
 function update_stats(){
