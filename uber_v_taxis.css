@@ -1,11 +1,11 @@
 
 
-#grid td{
-    width: 40px;
-    height: 40px;
+.grid td{
+    width: 20px;
+    height: 20px;
     border: solid 1px;
 }
-#grid td.obstacle{
+.grid td.obstacle{
     background-color: red;
 }
 

@@ -5,9 +5,9 @@
         <script type="text/javascript" src="jquery-2.1.3.min.js"></script>
         
         <!-- Bootstrap -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+        <script src="d3.v3.min.js"></script>
         
         <script type="text/javascript" src="bootstrap-slider.js"></script>
         <script type="text/javascript" src="uber_v_taxis.js"></script>
@@ -40,30 +40,56 @@
                 </div>
                 
                 <div class='row'>
+                    <div class='col-md-12'>
+                        <span>Number of Taxis</span><input id='number_of_taxis' value='5'/>
+                        <span>Taxi Price</span><input id='taxi_price' value='3'/>
+                        <span>Uber base price</span><input id='uber_base_price' value='.5'/>
+                    </div>
+                </div>
+                
+                <div class='row'>
                     <div class='col-md-1'>
                         <div class='standard_dev_container'>
                             <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
                         </div>
                     </div>
-                    <div class='col-md-11'>
-                        <div id="demand_graph"></div>
+                    <div class='col-md-5'>
+                        <div id="taxi_output_graph"></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div id="uber_output_graph"></div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div><span>current_time </span><span id='current_time'>00:00</span></div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-5'>
+                        <div><span>Average wait time </span><span id='taxi_average_wait_time'>0</span></div>
+                        <div><span>Longest Wait Time </span><span id='taxi_longest_wait_time'>0</span></div>
+                        <div><span>Average ride price </span><span id='taxi_average_ride_price'>0</span></div>
+                        <div><span>current_total_taxis </span><span id='taxi_current_total_taxis'>0</span></div>
+                        <div><span>current_total_wait_time </span><span id='taxi_current_total_wait_time'>0</span></div>
+                        <div><span>current_surge </span><span id='taxi_current_surge'>1</span></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div><span>Average wait time </span><span id='uber_average_wait_time'>0</span></div>
+                        <div><span>Longest Wait Time </span><span id='uber_longest_wait_time'>0</span></div>
+                        <div><span>Average ride price </span><span id='uber_average_ride_price'>0</span></div>
+                        <div><span>current_total_ubers </span><span id='uber_current_total_ubers'>0</span></div>
+                        <div><span>current_total_wait_time </span><span id='uber_current_total_wait_time'>0</span></div>
+                        <div><span>current_surge </span><span id='uber_current_surge'>1</span></div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-5'>
+                        <div id='taxi_grid' class='grid'></div>
+                    </div>
+                    <div class='col-md-5'>
+                        <div id='uber_grid' class='grid'></div>
                     </div>
                 </div>
                 
-                <div class='col-md-9'>
-                    <div id='grid'></div>
-                </div>
-                <div class='col-md-3'>
-                    <div class='row'>
-                        <div><span>Average wait time </span><span id='average_wait_time'>0</span></div>
-                        <div><span>Average ride time </span><span id='average_ride_time'>0</span></div>
-                        <div><span>Average ride price </span><span id='average_ride_price'>0</span></div>
-                        <div><span>current_total_ubers </span><span id='current_total_ubers'>0</span></div>
-                        <div><span>current_total_wait_time </span><span id='current_total_wait_time'>0</span></div>
-                        <div><span>current_surge </span><span id='current_surge'>1</span></div>
-                        <div><span>current_time </span><span id='current_time'>00:00</span></div>
-                    </div>
-                </div>
                 
             </div>
             <div class='row'>
