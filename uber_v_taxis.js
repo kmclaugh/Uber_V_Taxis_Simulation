@@ -174,7 +174,7 @@ function update_stats(grid){
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
     $('#'+grid.type+'_total_steps').text(total_steps);
     $('#'+grid.type+'_average_ride_price').text(price_per_minute);
-    $('#'+grid.type+'_average_ride_time').text(average_ride_time);
+    $('#'+grid.type+'_longest_wait_time').text(grid.longest_wait_time);
     $('#'+grid.type+'_average_wait_time').text(average_wait_time);
     $('#'+grid.type+'_current_total_wait_time').text(grid.current_total_wait_time);
     if (grid.type == 'uber') {
@@ -234,6 +234,11 @@ function passenger_class(grid){
     this.dropped_off = function(current_price){
         /*logic for being dropped off*/
         this.grid.total_ride_time += this.destination_travel_time;
+        console.log(this.grid.longest_ride_time, this.destination_travel_time)
+        if (this.grid.longest_ride_time < this.destination_travel_time) {
+            this.grid.longest_ride_time = this.destination_travel_time;
+            console.log(this.grid.longest_ride_time)
+        }
         this.grid.total_rides_completed += 1;
         this.grid.total_ride_price += this.destination_travel_time * current_price;
     }
@@ -530,6 +535,7 @@ function grid_class(size, html_id, type){
     this.car_list = [];
     this.passengers_list = [];
     this.current_surge = 1;
+    this.longest_ride_time = 0;
     
     this.time_step_logic = function(){
         this.current_total_cars = 0;
