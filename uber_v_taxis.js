@@ -12,7 +12,7 @@ var uber_grid;
 var taxi_grid;
 
 function reset_global_variables(){
-    /*Sets the global vairables*/
+    /*Sets the global vairables and grid stats*/
     //Macros
     real_time_per_step = 100;
     simulation_time_per_step = 30;//seconds
@@ -27,12 +27,10 @@ function reset_global_variables(){
     simulation_time = new Date(simulation_start_time);
     timer = null;
     //taxi
-    taxi_grid;
     taxi_grid.car_list = [];
     taxi_grid.passengers_list = [];
     taxi_grid.current_surge = 1;
     //uber
-    uber_grid;
     uber_grid.car_list = [];
     uber_grid.passengers_list = [];
     uber_grid.current_surge = 1;
@@ -79,23 +77,26 @@ $(window).load(function () {
     
     $(document).ready(function () {
         
-        
-        //uber
+        //Creat the Uber grid
         uber_grid = new grid_class(18, 'uber_grid', 'uber');
         uber_grid.create_grid();
         uber_grid.add_headings();
         uber_grid.add_options();
         uber_grid.create_html();
-        //taxi
+        
+        //Create the taxi grid
         taxi_grid = new grid_class(18, 'taxi_grid', 'taxi');
         taxi_grid.create_grid();
         taxi_grid.add_headings();
         taxi_grid.add_options();
         taxi_grid.create_html();
         
+        //Set global variables and create the taxis
         reset_global_variables();
         create_taxis(number_of_taxis);
         
+        
+        //Update the uber base price, number of taxis, or taxi price if the inputs change
         $('#uber_base_price').change(function(){
             base_uber = $('#uber_base_price').val();
         });
@@ -107,10 +108,14 @@ $(window).load(function () {
             create_taxis(number_of_taxis);
         });
         
+        //Start the time stepping when the use clicks start
         $("#start").click(function() {
+            
+            //Disable the uber cdf sliders
             $('#mean').slider('disable');
             $('#standard_dev').slider('disable');
             
+            //Set up and start the timer for the time step
             if (timer !== null) return;
             timer = window.setInterval(function(){
                 if (simulation_time <= simulation_end_time){
@@ -123,11 +128,13 @@ $(window).load(function () {
             }, real_time_per_step);
         });
         
+        //Stop the timer if the user clicks stop
         $("#stop").click(function() {
             clearInterval(timer);
             timer = null;
         });
         
+        //If the user clicks reset, clear all grids, stats, and graphs. Retain all inputs and uber cdf
         $("#reset").click(function() {
             clearInterval(timer);
             timer = null;
@@ -143,6 +150,7 @@ $(window).load(function () {
             update_output_graph(uber_grid, taxi_grid);
         });
         
+        //Initialize the demand slider
         $("#demand_slider").slider({
             reversed : true,
             ticks : [0, 100],
@@ -150,51 +158,56 @@ $(window).load(function () {
             step: 1,
             ticks_snap_bounds: 1
         });
+        
+        //When the demand slider moves, update the number of ride requests
         $("#demand_slider").on("slide", function(slideEvt) {
             uber_grid.current_demand = slideEvt.value;
             taxi_grid.current_demand = slideEvt.value;
             $("#current_demand").val(slideEvt.value);
-        });
-        $('#current_demand').change(function(){
-            var new_value = Number($(this).val());
-            $("#demand_slider").slider('setValue', new_value);
         });
     
     });
 });
 
 function time_step(){
+    /*Function that runs every time step. Cars move, passengers are picked up or dropped off,
+     *number of reuqests are increased or decreased, stats and graphs are updated*/
+    
+    //Move cars and update ride requests
     uber_grid.time_step_logic();
     taxi_grid.time_step_logic();
     
+    //Update stats and graphs
     total_steps += 1;
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
     update_stats(taxi_grid);
     update_output_graph(uber_grid, taxi_grid);
-    //update_output_graph(taxi_grid)
 }
 
 function update_stats(grid){
     /*Updates the statistics at the end of a time step*/
+    
+    //Calculate averages
     var average_ride_time = grid.total_ride_time/grid.total_rides_completed;
     var average_wait_time = grid.total_wait_time/grid.total_rides_started;
     var average_ride_price = grid.total_ride_price/grid.total_rides_completed;
     var average_driver_salary = grid.total_money/grid.total_driver_time;// $/timestep
     average_driver_salary = average_driver_salary * (1/simulation_time_per_step) * 60 * 60;// $/hour
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
-    $('#'+grid.type+'_total_steps').text(total_steps);
+    
+    //Update html objects with new values
     $('#'+grid.type+'_average_ride_price').text(price_per_minute);
     $('#'+grid.type+'_average_driver_salary').text(average_driver_salary);
     $('#'+grid.type+'_longest_wait_time').text(convert_timesteps_to_time(grid.longest_wait_time));
     $('#'+grid.type+'_average_wait_time').text(convert_timesteps_to_time(average_wait_time));
-    $('#'+grid.type+'_current_total_wait_time').text(grid.current_total_wait_time);
-    if (grid.type == 'uber') {
-        
+    
+    if (grid.type == 'uber') { 
         $('#'+grid.type+'_current_surge').text(grid.current_surge);
         $('#'+grid.type+'_current_total_ubers').text(grid.current_total_cars);
     }
     
+    //Format the simulation time for user readability
     var min = simulation_time.getMinutes();
     if (min < 10) {
         min = "0" + min;
@@ -216,7 +229,8 @@ function update_stats(grid){
 }
 
 function convert_timesteps_to_time(time_steps){
-    /*Convert the given number of time steps to hours and minutes based on the sim time per timestep*/
+    /*Convert the given number of time steps to hours and minutes based on the sim time per timestep
+    and format a string for the user*/
     if (isNaN(time_steps) == false){
         time_steps = Math.floor(time_steps);
     }
@@ -227,12 +241,17 @@ function convert_timesteps_to_time(time_steps){
     var hours   = Math.floor(total_seconds / 3600);
     var minutes = Math.floor((total_seconds - (hours * 3600)) / 60);
     var seconds = total_seconds - (hours * 3600) - (minutes * 60);
+    
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+
     var time_string = hours+':'+minutes+':'+seconds;
     return time_string;
 }
 
 function grid_class(size, html_id, type){
-    /*Class for carrying around grid info*/
+    /*Class for carrying around grid info including cars and passengers lists. stats, and time stepping logic*/
     var self = this;
     this.size = size;
     this.array = [];
@@ -265,6 +284,9 @@ function grid_class(size, html_id, type){
     this.total_money = 0;
     
     this.time_step_logic = function(){
+        /*runs the time step logic for each car and passenger. If this is the uber grid, it determines the surge logic as well*/
+        
+        //Time step each car
         this.current_total_cars = 0;
         for (c=0; c<this.car_list.length; c++){
             var car = this.car_list[c];
@@ -275,40 +297,57 @@ function grid_class(size, html_id, type){
             }
         }
         
+        //Update the number of passengers based on the demand logic
         if (this.passengers_list.length < this.current_demand){
             var add_passengers = this.current_demand - this.passengers_list.length;
             this.create_random_passengers(add_passengers);
         }
         
+        //Time step each ride request and update the current total wait time
         this.current_total_wait_time = 0;
         for (p=0; p<this.passengers_list.length; p++){
             passenger = this.passengers_list[p];
             passenger.time_step_logic();
         }
+        
+        //If this is uber, run through the surge logic
         if (this.type == 'uber') {
-            //Surge logic
-            var average_current_wait = this.current_total_wait_time/this.passengers_list.length;
+            
+            //If the current total wait time has gone up by more than 100 time steps since the last time step,
+            //increase the surge by 0.1 for each 100 time step increase
             if (this.current_total_wait_time > this.previous_total_weight_time + 100){
-                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
-                var add_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
+                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;//round to the nearest 100
+                var add_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;//increase by 0.1 for each 100 increase
                 this.current_surge += add_surge;
+                
+                //Update previous_total_weight_time
                 this.previous_total_weight_time = current_total_wait_time_rounded;
             }
+            
+            //If the current total wait time is holding or decreasing, decrease the surge
             else if (this.current_total_wait_time <= this.previous_total_weight_time){
-                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
+                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;//round to the nearest 100
+                
+                //If the rounded wait time is less than the previous,
                 if (current_total_wait_time_rounded < this.previous_total_weight_time) {
-                    var minus_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
+                    var minus_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;//decrease by 0.1 for each 100 decrease
                 }
+                //If the rounded wait time is equal to the previous and the surge is still greater than 1, (ie it's holding)
                 else if (this.current_surge > 1){
-                    var minus_surge = -0.1;
+                    var minus_surge = -0.1;//decrease by 0.1
                 }
+                //If the surge is at 1, do not decrease the surge
                 else{
                     var minus_surge = 0;
                 }
+                
+                //Update the surge
                 this.current_surge += minus_surge;
-                if (this.current_surge < 1){
+                if (this.current_surge < 1){//if it's less than 1, set it to 1
                     this.current_surge = 1;
                 }
+                
+                //Update previous_total_weight_time
                 this.previous_total_weight_time = current_total_wait_time_rounded;
             }
         }
@@ -331,6 +370,7 @@ function grid_class(size, html_id, type){
     }
        
     this.create_html = function(){
+        /*Create the html table using the html for each cell*/
         table_string = '<table>'
         for (y=0; y<self.array.length; y++){
             table_string = table_string + '<tr>';
@@ -441,6 +481,8 @@ function grid_class(size, html_id, type){
     }
                 
     this.find_valid_options = function(cell, current_heading){
+        /*Finds the valid left, right, or straight options given the current cell and heading*/
+        
         var valid_options = [];
         if (current_heading == 'south'){
             var cell_straight = self.get_cell(cell.x, cell.y+2);
@@ -513,6 +555,7 @@ function grid_class(size, html_id, type){
     }
 
     this.create_grid = function(){
+        /*Creates the grid based on the given size*/
         for (y = 0; y < self.size; y++) {
             var row = [];
             for (x = 0; x < self.size; x++) {
@@ -532,6 +575,14 @@ function grid_class(size, html_id, type){
     }
 }
 
+function create_taxis(number_of_taxis) {
+    /*Creates the given number of taxis and adds them to the taxi grid object*/
+    taxi_grid.car_list = [];
+    for (t=0; t<number_of_taxis; t++){
+        taxi = new car_class(type='taxi', grid=taxi_grid, surge_needed=0, max_cruising_time=0, current_price=taxi_price, driving=false);
+        taxi_grid.car_list.push(taxi);
+    }
+}
     
 function passenger_class(grid){
     /*Class for the passenger*/
@@ -546,20 +597,23 @@ function passenger_class(grid){
     this.current_travel_time = 0;
     
     this.time_step_logic = function(){
+        /*Run at each timestep, updates the current wait time*/
         this.current_wait_time += 1;
         this.grid.current_total_wait_time += this.current_wait_time;
     }
     
     this.picked_up = function(){
         /*Logic for being picked up by the car*/
-        this.remove_from();
+        this.remove_from();//remove from the grid
         this.waiting = false;
+        //Update stats
         this.wait_time = total_steps+1 - this.start_step;
         this.grid.total_rides_started += 1;
         this.grid.total_wait_time += this.wait_time;
         if (this.wait_time > this.grid.longest_wait_time) {
             this.grid.longest_wait_time = this.wait_time;
         }
+        //Remove from grid's passenger list
         var index = this.grid.passengers_list.indexOf(this);
         this.grid.passengers_list.splice(index, 1);
     }
@@ -592,17 +646,10 @@ function passenger_class(grid){
     }
 }
 
-function create_taxis(number_of_taxis) {
-    /*Creates the given number of taxis and adds them to the taxi grid object*/
-    taxi_grid.car_list = [];
-    for (t=0; t<number_of_taxis; t++){
-        taxi = new car_class(type='taxi', grid=taxi_grid, surge_needed=0, max_cruising_time=0, current_price=taxi_price, driving=false);
-        taxi_grid.car_list.push(taxi);
-    }
-}
-
 function car_class(type, grid, surge_needed, max_cruising_time, current_price, driving){
-    /*class for the car*/
+    /*class for the car. Includes instructions for how to execute right, left and straight moves,
+    Randomly selecting moves, picking up and dropping off passengers, and keeping track of stats
+    For ubers, determines when to starting and stop driving based on surge*/
     this.type = type;
     this.x;
     this.y;
@@ -616,14 +663,18 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
     this.max_cruising_time = max_cruising_time;
     this.current_price = current_price;
     this.driving = driving;
-    this.cruising_time = 0;
+    this.cruising_time = 0;//Time since last passenger drop off
     
     this.time_step_logic = function(){
         /*steps through the logic for a time step*/
+        
+        //If it's already driving
         if (this.driving == true){
-            this.move();
+            this.move();//execute move
+            //If there's no passenger, calculate cruising time,
             if (this.passenger == false){
                 this.cruising_time += 1;
+                //if the cruising time is greater than the max time, and the surge is less than needed, stop driving
                 if (this.type == 'uber' && this.cruising_time >= this.max_cruising_time && this.grid.current_surge < this.surge_needed){
                     this.remove_from();
                     this.cruising_time = 0;
@@ -632,9 +683,11 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
                     this.next_move = false
                 }
             }
+            //Update total driver time
             this.grid.total_driver_time += 1;
         }
         
+        //If not currently driving and the surge is greater than the surge needed, start driving
         else if (this.type == 'uber' && this.grid.current_surge >= this.surge_needed){
             var random_cell = this.grid.pick_random_cell();
             this.heading = random_cell[1];
@@ -643,6 +696,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
             this.passenger_logic();
         }
         
+        //Start all taxis
         else if (this.type == 'taxi'){//start the taxi
             var random_cell = this.grid.pick_random_cell();
             this.heading = random_cell[1];
@@ -653,6 +707,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
     }
     
     this.move = function(){
+        /*Executes the next single square move if there is one. If not,*/
         if (this.next_move != false){
             this.next_move();
             this.next_move = false;
@@ -661,19 +716,24 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
             this.next_next_move();
             this.next_next_move = false;
         }
+        //Selects a random move
         else{
             this.pick_move();
         }
+        //Pick up or drop off passengers
         this.passenger_logic();
     }
     
     this.passenger_logic = function(){
         /*logic for picking up, or dropping off a passenger*/
+        
+        //If there are no passengers, see if there is a ride request on the current cell, and pick him up if so
         if (this.passenger == false){
             if (this.current_cell.passengers.length > 0 ){
                 this.passenger = this.current_cell.passengers[0];
                 this.passenger.picked_up();
                 this.cruising_time = 0;
+                //Set the price of the trip
                 if (this.type == 'uber'){
                     this.current_price = this.grid.current_surge * base_uber;
                 }
@@ -682,6 +742,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
                 }
             }
         }
+        //If we current have a passenger, drop him off if it's the end of the trip, continue if not
         else{
             this.passenger.current_travel_time += 1;
             if (this.passenger.current_travel_time == this.passenger.destination_travel_time){
@@ -800,16 +861,21 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         }
     } 
     
+    //Single cell movement functions
     this.move_east = function(){
+        /*move one cell east*/
         new_cell = this.set_on(this.current_cell.x+1, this.current_cell.y);
     }
     this.move_west = function(){
+        /*move one cell west*/
         new_cell = this.set_on(this.current_cell.x-1, this.current_cell.y);
     }
     this.move_north = function(){
+        /*move one cell north*/
         new_cell = this.set_on(this.current_cell.x, this.current_cell.y-1);
     }
     this.move_south = function(){
+        /*move one cell south*/
         new_cell = this.set_on(this.current_cell.x, this.current_cell.y+1);
     }
     
@@ -826,6 +892,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         }
         return new_cell;
     }
+    
     this.remove_from = function(){
         /*removes the car from it's current cell*/
         if (this.current_cell != false){
@@ -849,6 +916,7 @@ function cell_class(x, y, obstacle, grid){
     this.passengers = [];
     
     this.make_html = function(){
+        /*Makes the html for this cell*/
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
