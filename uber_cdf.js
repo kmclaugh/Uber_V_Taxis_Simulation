@@ -1,3 +1,4 @@
+//CDF globals
 var max_cdf_surge = 5;
 var max_cdf_standard_dev = 2.5;
 var number_of_drivers = 100
@@ -25,49 +26,65 @@ $(window).load(function () {
             value: .3
         });
         
+        //Anytime eith ther mean or standard dev slider changes, regenerate the uber cdf data and update the graph
          $(".cdf_slider").on("slide", function(slideEvt) {
+            var uber_cdf_data = generate_data();//update data
             
-            var uber_cdf_data = generate_data();  
+            //redraw cdf line
             var svg = d3.select('#graph').transition();
             svg.select('.line')
                 .duration(750)
                 .attr("d", uber_cdf_line_function(uber_cdf_data));
-
         });
         
+        //create initial cdf data
         var uber_cdf_data = generate_data();
-        
+        //draw the cdf graph
         uber_cdf_line_function = draw_uber_cdf_graph(uber_cdf_data);
         
     });
 });
 
 function generate_data(){
+    /*Generates the uber grid's list of drivers. Determines the surge need for each driver to begin driving based on
+     *the mean and standard deviation given by the user in the sliders. Returns a list of x,y data pairs to create the
+     *uber cdf graph*/
+    
+    //Get the mean and standard deviations from the sliders
     var mean = Number($('#mean').slider('getValue'));
     var standard_dev = Number($('#standard_dev').slider('getValue'));
-    var uber_cdf_data = [];
     
+    //reset the uber drivers list and uber cdf data
     uber_grid.car_list = [];
-    
+    var uber_cdf_data = [];
+
+    //loop through all possible surge values from 1 to the max_cdf_surge in .1 increments and
+    //use the standard cdf function to find the number of driver who will driver for each surge
     var previous_surge = 0;
     for (surge=1; surge<max_cdf_surge; surge+=0.1){
+        
+        //Find the number of drivers for this surge
         var percent_of_drivers = cdf(x=surge, mean=mean, variance=Math.pow(standard_dev, 2));
         var total_for_surge = Math.ceil(number_of_drivers * percent_of_drivers);
         var this_surge = total_for_surge - previous_surge;
         var uber_cdf_datum = {'x':surge, 'y':total_for_surge};
-        
         previous_surge = total_for_surge;
-        uber_cdf_data.push(uber_cdf_datum);
+        
+        //Create the correct number of drivers for this surge and add the data point to the cdf data
         for (u=0; u<this_surge; u++){
             uber_car = new car_class(type='uber', grid=uber_grid, surge_needed=surge, max_cruising_time=20, current_price=false, driving=false);
             uber_grid.car_list.push(uber_car);
         }
+        uber_cdf_data.push(uber_cdf_datum);
     }
+    
     return uber_cdf_data;
 }
 
 function draw_uber_cdf_graph(the_data){
+    /*draws the uber cdf graph based on the given cdf data*/
     
+    //Set margins and width
     var margin = {
         top: 30,
         right: 0,
@@ -77,6 +94,7 @@ function draw_uber_cdf_graph(the_data){
     var width = 500 - margin.right - margin.left;
     var height = 250 - margin.top - margin.bottom;
     
+    //Add svg element to graph div
     var svg = d3.select('#graph')
         .append("svg")
             .attr("width", width + margin.left + margin.right)
@@ -92,7 +110,7 @@ function draw_uber_cdf_graph(the_data){
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .text("Uber Driver Incentive Curve");
-                
+        
     var xRange = d3.scale.linear()
         .range([0, width])
         .domain([1, max_cdf_surge]);
@@ -118,7 +136,7 @@ function draw_uber_cdf_graph(the_data){
         .attr('transform', 'translate(0,' + height + ')')
         .call(xAxis);
     
-    svg.append("text")      // text label for the x axis
+    svg.append("text")//label for the x axis
         .attr("x", width / 2 )
         .attr("y",  height+margin.bottom-5)
         .style("text-anchor", "middle")
@@ -128,7 +146,7 @@ function draw_uber_cdf_graph(the_data){
     svg.append('svg:g')
         .attr('class', 'y axis')
         .call(yAxis)
-    svg.append("text")
+    svg.append("text")//label for the y axis
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - margin.left)
         .attr("x",0 - (height / 2))
@@ -136,7 +154,7 @@ function draw_uber_cdf_graph(the_data){
         .style("text-anchor", "middle")
         .text("Total Number of Drivers");
     
-  
+    //create the uber cdf line function based on the ranges
     var uber_cdf_line_function = d3.svg.line()
         .x(function(d) {
             return xRange(d.x);
@@ -146,6 +164,7 @@ function draw_uber_cdf_graph(the_data){
         })
         .interpolate('basis');
     
+    //Add the path (line) to the svg element based on the cdf line function
     svg.append('svg:path')
         .attr('d', uber_cdf_line_function(the_data))
         .attr('stroke', 'blue')
@@ -157,17 +176,14 @@ function draw_uber_cdf_graph(the_data){
 }
 
 function cdf(x, mean, variance) {
+    /*Returns the cumulative distribution value for the given x, mean and variance.
+    Copied from http://stackoverflow.com/questions/14846767/std-normal-cdf-normal-cdf-or-error-function*/
     return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2 * variance))));
-}
-
-function pdf(x, mean, variance) {
-    var exponent = -1 * Math.pow(x-mean, 2)/(2*Math.pow(variance,2));
-    
-    var pdf = 1/(variance*Math.sqrt(2*Math.PI)) * Math.pow(Math.E, exponent);
-    return pdf;
 }
   
 function erf(x) {
+    /*Standard error function for a given x
+    Copied from http://stackoverflow.com/questions/14846767/std-normal-cdf-normal-cdf-or-error-function*/
     // save the sign of x
     var sign = (x >= 0) ? 1 : -1;
     x = Math.abs(x);
