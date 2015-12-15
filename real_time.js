@@ -12,7 +12,6 @@ $(window).load(function () {
     $(document).ready(function () {
         
         draw_output_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, taxi_grid.demand_data, false, true, uber_grid);
-        //draw_output_graph(taxi_grid.demand_data, taxi_grid.driver_data, taxi_grid.surge_data, false, true, taxi_grid);
         
     });
 });
@@ -31,7 +30,7 @@ function update_output_graph(uber_grid, taxi_grid){
     var new_passenger_data = {x:current_sim_time, y:taxi_grid.passengers_list.length};
     taxi_grid.demand_data.push(new_passenger_data);
     var svg = d3.select('#uber_output_graph_svg_g');
-    draw_output_graph(grid.demand_data, grid.driver_data, grid.surge_data, taxi_grid.demand_data, svg, false, grid);
+    draw_output_graph(uber_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data, taxi_grid.demand_data, svg, false, uber_grid);
         
 }
 

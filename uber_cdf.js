@@ -6,17 +6,19 @@ $(window).load(function () {
     
     $(document).ready(function () {
         
+        //Create the mean slider for the uber driver cdf
         $("#mean").slider({
-            ticks : [0, max_cdf_surge/2, max_cdf_surge],
+            ticks : [0, 1.5, max_cdf_surge/2, max_cdf_surge],
             scale: 'linear',
             step: .1,
             ticks_snap_bounds: .1,
             value: 1.5
         });
         
+        //Create the standard dev slider for the uber cdf
         $('#standard_dev').slider({
             reversed : true,
-            ticks : [.1, max_cdf_standard_dev/2, max_cdf_standard_dev],
+            ticks : [.1, .3, max_cdf_standard_dev/2, max_cdf_standard_dev],
             scale: 'linear',
             step: .1,
             orientation: "vertical",
@@ -29,13 +31,13 @@ $(window).load(function () {
             var svg = d3.select('#graph').transition();
             svg.select('.line')
                 .duration(750)
-                .attr("d", lineFunc(uber_cdf_data));
+                .attr("d", uber_cdf_line_function(uber_cdf_data));
 
         });
         
         var uber_cdf_data = generate_data();
         
-        lineFunc = draw_graph(uber_cdf_data);
+        uber_cdf_line_function = draw_uber_cdf_graph(uber_cdf_data);
         
     });
 });
@@ -45,7 +47,7 @@ function generate_data(){
     var standard_dev = Number($('#standard_dev').slider('getValue'));
     var uber_cdf_data = [];
     
-    //uber_list = [];
+    uber_grid.car_list = [];
     
     var previous_surge = 0;
     for (surge=1; surge<max_cdf_surge; surge+=0.1){
@@ -56,17 +58,15 @@ function generate_data(){
         
         previous_surge = total_for_surge;
         uber_cdf_data.push(uber_cdf_datum);
-        
         for (u=0; u<this_surge; u++){
             uber_car = new car_class(type='uber', grid=uber_grid, surge_needed=surge, max_cruising_time=20, current_price=false, driving=false);
             uber_grid.car_list.push(uber_car);
         }
     }
-    
     return uber_cdf_data;
 }
 
-function draw_graph(the_data){
+function draw_uber_cdf_graph(the_data){
     
     var margin = {
         top: 30,
@@ -95,11 +95,11 @@ function draw_graph(the_data){
                 
     var xRange = d3.scale.linear()
         .range([0, width])
-        .domain([0, max_cdf_surge]);
+        .domain([1, max_cdf_surge]);
       
     var yRange = d3.scale.linear()
         .range([height, 0])
-        .domain([d3.min(the_data, function(d) {return d.y;}), d3.max(the_data, function(d) {return d.y;})]);
+        .domain([0, 100]);
     
     var xAxis = d3.svg.axis()
         .scale(xRange)
@@ -137,23 +137,23 @@ function draw_graph(the_data){
         .text("Total Number of Drivers");
     
   
-    var lineFunc = d3.svg.line()
+    var uber_cdf_line_function = d3.svg.line()
         .x(function(d) {
-          return xRange(d.x);
+            return xRange(d.x);
         })
         .y(function(d) {
-          return yRange(d.y);
+            return yRange(d.y);
         })
         .interpolate('basis');
     
     svg.append('svg:path')
-        .attr('d', lineFunc(the_data))
+        .attr('d', uber_cdf_line_function(the_data))
         .attr('stroke', 'blue')
         .attr('stroke-width', 2)
         .attr('fill', 'none')
         .attr('class', 'line');
     
-    return lineFunc;
+    return uber_cdf_line_function;
 }
 
 function cdf(x, mean, variance) {

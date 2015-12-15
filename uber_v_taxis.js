@@ -113,7 +113,13 @@ $(window).load(function () {
             
             if (timer !== null) return;
             timer = window.setInterval(function(){
-               time_step();
+                if (simulation_time <= simulation_end_time){
+                    time_step();
+                }
+                else{
+                    clearInterval(timer);
+                    timer = null;
+                }
             }, real_time_per_step);
         });
         
@@ -124,14 +130,17 @@ $(window).load(function () {
         
         $("#reset").click(function() {
             clearInterval(timer);
+            timer = null;
             reset_global_variables();
-            update_stats();
+            update_stats(uber_grid);
+            update_stats(taxi_grid);
             uber_grid.reset();
+            taxi_grid.reset();
             generate_data();
+            create_taxis(number_of_taxis);
             $('#mean').slider('enable');
             $('#standard_dev').slider('enable');
-            var svg = d3.select('#demand_graph_svg');
-            svg.select('.line').remove();
+            update_output_graph(uber_grid, taxi_grid);
         });
         
         $("#demand_slider").slider({
@@ -221,6 +230,308 @@ function convert_timesteps_to_time(time_steps){
     var time_string = hours+':'+minutes+':'+seconds;
     return time_string;
 }
+
+function grid_class(size, html_id, type){
+    /*Class for carrying around grid info*/
+    var self = this;
+    this.size = size;
+    this.array = [];
+    this.html_id = html_id;
+    this.html = '';
+    this.type = type;
+    //stats
+    this.total_rides_started;
+    this.total_rides_completed;
+    this.total_wait_time;
+    this.total_ride_time;
+    this.total_ride_price;
+    this.current_total_wait_time;
+    this.previous_total_weight_time = 0;
+    this.current_demand;
+    this.current_total_cars;
+    this.demand_data = [];
+    this.driver_data = [];
+    this.surge_data = [];
+    this.average_ride_price;
+    this.average_ride_time;
+    this.average_wait_time;
+    this.failed_rides;
+    this.current_failed_rides;
+    this.car_list = [];
+    this.passengers_list = [];
+    this.current_surge = 1;
+    this.longest_wait_time = 0;
+    this.total_driver_time = 0;
+    this.total_money = 0;
+    
+    this.time_step_logic = function(){
+        this.current_total_cars = 0;
+        for (c=0; c<this.car_list.length; c++){
+            var car = this.car_list[c];
+            
+            car.time_step_logic();
+            if (car.driving == true){
+                this.current_total_cars += 1;
+            }
+        }
+        
+        if (this.passengers_list.length < this.current_demand){
+            var add_passengers = this.current_demand - this.passengers_list.length;
+            this.create_random_passengers(add_passengers);
+        }
+        
+        this.current_total_wait_time = 0;
+        for (p=0; p<this.passengers_list.length; p++){
+            passenger = this.passengers_list[p];
+            passenger.time_step_logic();
+        }
+        if (this.type == 'uber') {
+            //Surge logic
+            var average_current_wait = this.current_total_wait_time/this.passengers_list.length;
+            if (this.current_total_wait_time > this.previous_total_weight_time + 100){
+                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
+                var add_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
+                this.current_surge += add_surge;
+                this.previous_total_weight_time = current_total_wait_time_rounded;
+            }
+            else if (this.current_total_wait_time <= this.previous_total_weight_time){
+                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
+                if (current_total_wait_time_rounded < this.previous_total_weight_time) {
+                    var minus_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
+                }
+                else if (this.current_surge > 1){
+                    var minus_surge = -0.1;
+                }
+                else{
+                    var minus_surge = 0;
+                }
+                this.current_surge += minus_surge;
+                if (this.current_surge < 1){
+                    this.current_surge = 1;
+                }
+                this.previous_total_weight_time = current_total_wait_time_rounded;
+            }
+        }
+        
+    }
+    
+    this.create_random_passengers = function(number_of_passengers){
+        /*Creates the given number of random passengers*/
+        for (counter=0; counter<number_of_passengers; counter++){
+            this.create_random_passenger();
+        }
+    }
+
+    this.create_random_passenger = function(){
+        /*Create a passenger and places them randomly on the grid*/
+        var random_cell = this.pick_random_cell();
+        var passenger = new passenger_class(this);
+        passenger.set_on(random_cell[0].x, random_cell[0].y);
+        this.passengers_list.push(passenger);
+    }
+       
+    this.create_html = function(){
+        table_string = '<table>'
+        for (y=0; y<self.array.length; y++){
+            table_string = table_string + '<tr>';
+            var row = self.array[y];
+            for (x=0; x<row.length; x++){
+                var cell = row[x];
+                table_string = table_string + cell.make_html();
+            }
+            table_string = table_string + '</tr>';
+        }
+        table_string = table_string + '</table>';
+        self.html = table_string;
+        $('#'+self.html_id).html(self.html);
+        return self.html;
+    }
+    
+    this.reset = function(){
+        /*Clears passengers from cells and resets the styles*/
+        for (y=0; y<self.array.length; y++){
+            var row = self.array[y];
+            for (x=0; x<row.length; x++){
+                var cell = row[x];
+                cell.passengers = [];
+            }
+        }
+        $('.has_car').each(function(){
+            $(this).removeClass('has_car');
+        });
+        $('.has_passenger').each(function(){
+            $(this).removeClass('has_passenger');
+        });
+    }
+    
+    this.pick_random_cell = function(){
+        /*picks a random, non-obstacle cell and returns the cell and a random heading from that cell*/
+        var obstacle = true;
+        while (obstacle == true){
+            var random_row = getRandomInt(min=0, max=this.size-1);
+            var random_column = getRandomInt(min=0, max=this.size-1);
+            var random_cell = this.get_cell(random_column, random_row);
+            obstacle = random_cell.obstacle;
+        }
+        var random_heading = random_cell.headings.list[Math.floor(random_cell.headings.list.length * Math.random())];
+        return [random_cell, random_heading];
+    }
+    
+    this.add_headings = function(){
+        /*Add possible headings to cell*/
+        for (y=0; y<self.array.length; y++){
+            var row = self.array[y];
+            for (x=0; x<row.length; x++){
+                var cell = row[x];
+                if (cell.x % 4 == 0){
+                    cell.headings.south = true;
+                }
+                else if (cell.x % 4 == 1){
+                    cell.headings.north = true;
+                }
+                if (cell.y % 4 == 0){
+                    cell.headings.west = true;
+                }
+                else if (cell.y % 4 == 1){
+                    cell.headings.east = true;
+                }
+            }
+        }
+    }
+    
+    this.add_options = function(){
+        /*Add possible options to cell*/
+        for (y=0; y<self.array.length; y++){
+            var row = self.array[y];
+            for (x=0; x<row.length; x++){
+                var cell = row[x];
+                
+                var valid_options = {};
+                if (cell.headings.north == true){
+                    var heading_options = self.find_valid_options(cell, 'north');
+                    valid_options['north'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('north');
+                    }
+                }
+                if (cell.headings.west == true){
+                    var heading_options = self.find_valid_options(cell, 'west');
+                    valid_options['west'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('west');
+                    }
+                }
+                if (cell.headings.east == true){
+                    var heading_options = self.find_valid_options(cell, 'east');
+                    valid_options['east'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('east');
+                    }
+                }
+                if (cell.headings.south == true){
+                    var heading_options = self.find_valid_options(cell, 'south');
+                    valid_options['south'] = heading_options;
+                    if (heading_options.length > 0){
+                        cell.headings.list.push('south');
+                    }
+                }
+                cell.valid_options = valid_options;
+            }
+        }
+    }
+                
+    this.find_valid_options = function(cell, current_heading){
+        var valid_options = [];
+        if (current_heading == 'south'){
+            var cell_straight = self.get_cell(cell.x, cell.y+2);
+            if (cell_straight != false && cell_straight.headings.south == true){
+                valid_options.push('straight');
+            }
+            var cell_right = self.get_cell(cell.x-1, cell.y);
+            if (cell_right != false && cell_right.headings.west == true){
+                valid_options.push('right');
+            }
+            var cell_left = self.get_cell(cell.x+2, cell.y+1);
+            if (cell_left != false && cell_left.headings.east == true){
+                valid_options.push('left');
+            }
+        }
+        else if (current_heading == 'north'){
+            var cell_straight = self.get_cell(cell.x, cell.y-2);
+            if (cell_straight != false && cell_straight.headings.north == true){
+                valid_options.push('straight');
+            }
+            var cell_right = self.get_cell(cell.x+1, cell.y);
+            if (cell_right != false && cell_right.headings.east == true){
+                valid_options.push('right');
+            }
+            var cell_left = self.get_cell(cell.x-2, cell.y-1);
+            if (cell_left != false && cell_left.headings.west == true){
+                valid_options.push('left');
+            }
+        }
+        else if (current_heading == 'east'){
+            var cell_straight = self.get_cell(cell.x+2, cell.y);
+            if (cell_straight != false && cell_straight.headings.east == true){
+                valid_options.push('straight');
+            }
+            var cell_right = self.get_cell(cell.x, cell.y+1);
+            if (cell_right != false && cell_right.headings.south == true){
+                valid_options.push('right');
+            }
+            var cell_left = self.get_cell(cell.x+1, cell.y-2);
+            if (cell_left != false && cell_left.headings.north == true){
+                valid_options.push('left');
+            }
+        }
+        else if (current_heading == 'west'){
+            var cell_straight = self.get_cell(cell.x-2, cell.y);
+            if (cell_straight != false && cell_straight.headings.west == true){
+                valid_options.push('straight');
+            }
+            var cell_right = self.get_cell(cell.x, cell.y-1);
+            if (cell_right != false && cell_right.headings.north == true){
+                valid_options.push('right');
+            }
+            var cell_left = self.get_cell(cell.x-1, cell.y+2);
+            if (cell_left != false && cell_left.headings.south == true){
+                valid_options.push('left');
+            }
+        }
+        return(valid_options);
+    }
+    
+    this.get_cell = function(x, y){
+        /*returns the given cell. returns false if it does not exists*/
+        var cell = false;
+        if (y >= 0 && y < self.size){
+            if (x >= 0 && x < self.size){
+                cell = self.array[y][x];
+            }
+        }
+        return cell;
+    }
+
+    this.create_grid = function(){
+        for (y = 0; y < self.size; y++) {
+            var row = [];
+            for (x = 0; x < self.size; x++) {
+                var x_mod = x % 4;
+                var y_mod = y % 4;
+                if ((x_mod==2 || x_mod==3) && (y_mod==2 || y_mod==3)){
+                    var cell = new cell_class(x, y, true, this);
+                }
+                else{
+                    var cell = new cell_class(x, y, false, this);
+                }
+                row.push(cell);
+            }
+            self.array.push(row);
+        }
+        return self.array;
+    }
+}
+
     
 function passenger_class(grid){
     /*Class for the passenger*/
@@ -525,306 +836,6 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         }
     }
 }
-    
-
-function grid_class(size, html_id, type){
-    /*Class for carrying around grid info*/
-    var self = this;
-    this.size = size;
-    this.array = [];
-    this.html_id = html_id;
-    this.html = '';
-    this.type = type;
-    //stats
-    this.total_rides_started;
-    this.total_rides_completed;
-    this.total_wait_time;
-    this.total_ride_time;
-    this.total_ride_price;
-    this.current_total_wait_time;
-    this.previous_total_weight_time = 0;
-    this.current_demand;
-    this.current_total_cars;
-    this.demand_data = [];
-    this.driver_data = [];
-    this.surge_data = [];
-    this.average_ride_price;
-    this.average_ride_time;
-    this.average_wait_time;
-    this.failed_rides;
-    this.current_failed_rides;
-    this.car_list = [];
-    this.passengers_list = [];
-    this.current_surge = 1;
-    this.longest_wait_time = 0;
-    this.total_driver_time = 0;
-    this.total_money = 0;
-    
-    this.time_step_logic = function(){
-        this.current_total_cars = 0;
-        for (c=0; c<this.car_list.length; c++){
-            var car = this.car_list[c];
-            
-            car.time_step_logic();
-            if (car.driving == true){
-                this.current_total_cars += 1;
-            }
-        }
-        
-        if (this.passengers_list.length < this.current_demand){
-            var add_passengers = this.current_demand - this.passengers_list.length;
-            this.create_random_passengers(add_passengers);
-        }
-        
-        this.current_total_wait_time = 0;
-        for (p=0; p<this.passengers_list.length; p++){
-            passenger = this.passengers_list[p];
-            passenger.time_step_logic();
-        }
-        if (this.type == 'uber') {
-            //Surge logic
-            var average_current_wait = this.current_total_wait_time/this.passengers_list.length;
-            if (this.current_total_wait_time > this.previous_total_weight_time + 100){
-                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
-                var add_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
-                this.current_surge += add_surge;
-                this.previous_total_weight_time = current_total_wait_time_rounded;
-            }
-            else if (this.current_total_wait_time <= this.previous_total_weight_time){
-                var current_total_wait_time_rounded = Math.floor(this.current_total_wait_time / 100) * 100;
-                if (current_total_wait_time_rounded < this.previous_total_weight_time) {
-                    var minus_surge = (current_total_wait_time_rounded - this.previous_total_weight_time)/100/10;
-                }
-                else if (this.current_surge > 1){
-                    var minus_surge = -0.1;
-                }
-                else{
-                    var minus_surge = 0;
-                }
-                this.current_surge += minus_surge;
-                this.previous_total_weight_time = current_total_wait_time_rounded;
-            }
-        }
-        
-    }
-    
-    this.create_random_passengers = function(number_of_passengers){
-        /*Creates the given number of random passengers*/
-        for (counter=0; counter<number_of_passengers; counter++){
-            this.create_random_passenger();
-        }
-    }
-
-    this.create_random_passenger = function(){
-        /*Create a passenger and places them randomly on the grid*/
-        var random_cell = this.pick_random_cell();
-        var passenger = new passenger_class(this);
-        passenger.set_on(random_cell[0].x, random_cell[0].y);
-        this.passengers_list.push(passenger);
-    }
-       
-    this.create_html = function(){
-        table_string = '<table>'
-        for (y=0; y<self.array.length; y++){
-            table_string = table_string + '<tr>';
-            var row = self.array[y];
-            for (x=0; x<row.length; x++){
-                var cell = row[x];
-                table_string = table_string + cell.make_html();
-            }
-            table_string = table_string + '</tr>';
-        }
-        table_string = table_string + '</table>';
-        self.html = table_string;
-        $('#'+self.html_id).html(self.html);
-        return self.html;
-    }
-    
-    this.reset = function(){
-        /*Clears passengers from cells and resets the styles*/
-        for (y=0; y<self.array.length; y++){
-            var row = self.array[y];
-            for (x=0; x<row.length; x++){
-                var cell = row[x];
-                cell.passengers = [];
-            }
-        }
-        $('.has_car').each(function(){
-            $(this).removeClass('has_car');
-        });
-        $('.has_passenger').each(function(){
-            $(this).removeClass('has_passenger');
-        });
-    }
-    
-    this.pick_random_cell = function(){
-        /*picks a random, non-obstacle cell and returns the cell and a random heading from that cell*/
-        var obstacle = true;
-        while (obstacle == true){
-            var random_row = getRandomInt(min=0, max=this.size-1);
-            var random_column = getRandomInt(min=0, max=this.size-1);
-            var random_cell = this.get_cell(random_column, random_row);
-            obstacle = random_cell.obstacle;
-        }
-        var random_heading = random_cell.headings.list[Math.floor(random_cell.headings.list.length * Math.random())];
-        return [random_cell, random_heading];
-    }
-    
-    this.add_headings = function(){
-        /*Add possible headings to cell*/
-        for (y=0; y<self.array.length; y++){
-            var row = self.array[y];
-            for (x=0; x<row.length; x++){
-                var cell = row[x];
-                if (cell.x % 4 == 0){
-                    cell.headings.south = true;
-                }
-                else if (cell.x % 4 == 1){
-                    cell.headings.north = true;
-                }
-                if (cell.y % 4 == 0){
-                    cell.headings.west = true;
-                }
-                else if (cell.y % 4 == 1){
-                    cell.headings.east = true;
-                }
-            }
-        }
-    }
-    
-    this.add_options = function(){
-        /*Add possible options to cell*/
-        for (y=0; y<self.array.length; y++){
-            var row = self.array[y];
-            for (x=0; x<row.length; x++){
-                var cell = row[x];
-                
-                var valid_options = {};
-                if (cell.headings.north == true){
-                    var heading_options = self.find_valid_options(cell, 'north');
-                    valid_options['north'] = heading_options;
-                    if (heading_options.length > 0){
-                        cell.headings.list.push('north');
-                    }
-                }
-                if (cell.headings.west == true){
-                    var heading_options = self.find_valid_options(cell, 'west');
-                    valid_options['west'] = heading_options;
-                    if (heading_options.length > 0){
-                        cell.headings.list.push('west');
-                    }
-                }
-                if (cell.headings.east == true){
-                    var heading_options = self.find_valid_options(cell, 'east');
-                    valid_options['east'] = heading_options;
-                    if (heading_options.length > 0){
-                        cell.headings.list.push('east');
-                    }
-                }
-                if (cell.headings.south == true){
-                    var heading_options = self.find_valid_options(cell, 'south');
-                    valid_options['south'] = heading_options;
-                    if (heading_options.length > 0){
-                        cell.headings.list.push('south');
-                    }
-                }
-                cell.valid_options = valid_options;
-            }
-        }
-    }
-                
-    this.find_valid_options = function(cell, current_heading){
-        var valid_options = [];
-        if (current_heading == 'south'){
-            var cell_straight = self.get_cell(cell.x, cell.y+2);
-            if (cell_straight != false && cell_straight.headings.south == true){
-                valid_options.push('straight');
-            }
-            var cell_right = self.get_cell(cell.x-1, cell.y);
-            if (cell_right != false && cell_right.headings.west == true){
-                valid_options.push('right');
-            }
-            var cell_left = self.get_cell(cell.x+2, cell.y+1);
-            if (cell_left != false && cell_left.headings.east == true){
-                valid_options.push('left');
-            }
-        }
-        else if (current_heading == 'north'){
-            var cell_straight = self.get_cell(cell.x, cell.y-2);
-            if (cell_straight != false && cell_straight.headings.north == true){
-                valid_options.push('straight');
-            }
-            var cell_right = self.get_cell(cell.x+1, cell.y);
-            if (cell_right != false && cell_right.headings.east == true){
-                valid_options.push('right');
-            }
-            var cell_left = self.get_cell(cell.x-2, cell.y-1);
-            if (cell_left != false && cell_left.headings.west == true){
-                valid_options.push('left');
-            }
-        }
-        else if (current_heading == 'east'){
-            var cell_straight = self.get_cell(cell.x+2, cell.y);
-            if (cell_straight != false && cell_straight.headings.east == true){
-                valid_options.push('straight');
-            }
-            var cell_right = self.get_cell(cell.x, cell.y+1);
-            if (cell_right != false && cell_right.headings.south == true){
-                valid_options.push('right');
-            }
-            var cell_left = self.get_cell(cell.x+1, cell.y-2);
-            if (cell_left != false && cell_left.headings.north == true){
-                valid_options.push('left');
-            }
-        }
-        else if (current_heading == 'west'){
-            var cell_straight = self.get_cell(cell.x-2, cell.y);
-            if (cell_straight != false && cell_straight.headings.west == true){
-                valid_options.push('straight');
-            }
-            var cell_right = self.get_cell(cell.x, cell.y-1);
-            if (cell_right != false && cell_right.headings.north == true){
-                valid_options.push('right');
-            }
-            var cell_left = self.get_cell(cell.x-1, cell.y+2);
-            if (cell_left != false && cell_left.headings.south == true){
-                valid_options.push('left');
-            }
-        }
-        return(valid_options);
-    }
-    
-    this.get_cell = function(x, y){
-        /*returns the given cell. returns false if it does not exists*/
-        var cell = false;
-        if (y >= 0 && y < self.size){
-            if (x >= 0 && x < self.size){
-                cell = self.array[y][x];
-            }
-        }
-        return cell;
-    }
-
-    this.create_grid = function(){
-        for (y = 0; y < self.size; y++) {
-            var row = [];
-            for (x = 0; x < self.size; x++) {
-                var x_mod = x % 4;
-                var y_mod = y % 4;
-                if ((x_mod==2 || x_mod==3) && (y_mod==2 || y_mod==3)){
-                    var cell = new cell_class(x, y, true, this);
-                }
-                else{
-                    var cell = new cell_class(x, y, false, this);
-                }
-                row.push(cell);
-            }
-            self.array.push(row);
-        }
-        return self.array;
-    }
-}
-                
 
 function cell_class(x, y, obstacle, grid){
     /*Class for carrying around cell info*/
