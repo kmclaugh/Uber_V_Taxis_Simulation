@@ -371,7 +371,7 @@ function grid_class(size, html_id, type){
        
     this.create_html = function(){
         /*Create the html table using the html for each cell*/
-        table_string = '<table>'
+        table_string = '<table class="grid">'
         for (y=0; y<self.array.length; y++){
             table_string = table_string + '<tr>';
             var row = self.array[y];
@@ -914,19 +914,57 @@ function cell_class(x, y, obstacle, grid){
     this.html = '';
     this.html_id = grid.html_id + '_'+this.x+"-"+this.y;
     this.passengers = [];
+    this.grid = grid
     
     this.make_html = function(){
         /*Makes the html for this cell*/
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
-            this.html = "<td id="+this.html_id+" x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "</td>";
+            this.html = "<td id="+this.html_id+ " class='"+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "</td>";
         }
         else{
-            this.html = "<td id="+this.html_id+" class='obstacle' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"</td>";
+            this.html = "<td id="+this.html_id+ " class='obstacle "+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"</td>";
         }
         return this.html;
-    }       
+    }
+    
+    this.make_css_class_string = function(){
+        /*Makes the css class for styling the grid*/
+        
+        if (this.obstacle == false){
+            var css_class_string = 'street ';
+            if (this.headings.north != false && this.valid_options['north'].length != 0 && this.y < this.grid.size-1){
+                console.log(this.y, this.grid.size);
+                css_class_string += 'north ';
+            }
+            if (this.headings.south != false && this.valid_options['south'].length != 0 && this.y > 0){
+                css_class_string += 'south ';
+            }
+            if (this.headings.west != false && this.valid_options['west'].length != 0 && this.x < this.grid.size-1){
+                css_class_string += 'west ';
+            }
+            if (this.headings.east != false && this.valid_options['east'].length != 0 && this.x > 0){
+                css_class_string += 'east ';
+            }
+        }
+        else{
+            if (this.x%2 == 0 && this.y%2 == 0){
+                var css_class_string = 'northwest';
+            }
+            else if (this.x%2 == 1 && this.y%2 == 0){
+                var css_class_string = 'northeast';
+            }
+            else if (this.x%2 == 1 && this.y%2 == 1){
+                var css_class_string = 'southeast';
+            }
+            else if (this.x%2 == 0 && this.y%2 == 1){
+                var css_class_string = 'southwest';
+            }
+        }
+        
+        return css_class_string;
+    }
 }
 
 function headings(){

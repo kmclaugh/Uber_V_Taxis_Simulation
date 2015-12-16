@@ -3,10 +3,48 @@
 .grid td{
     width: 20px;
     height: 20px;
+}
+table.grid{
     border: solid 1px;
 }
+td.street{
+    background-color: #d9d9d9;
+}
+td.north{
+    border-left: dashed 3px white;
+}
+td.south{
+    border-right: dashed 3px white;
+}
+td.west{
+    border-bottom: dashed 3px white;
+}
+td.east{
+    border-top: dashed 3px white;
+}
 .grid td.obstacle{
-    background-color: red;
+    background-color: #f0eee6;
+    border: none;
+}
+td.northwest{
+    -webkit-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    -moz-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    box-shadow: inset 4px 4px 0px 0px rgba(199,196,185,1);
+}
+td.northeast{
+    -webkit-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    -moz-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    box-shadow: inset -4px 4px 0px 0px rgba(199,196,185,1);
+}
+td.southeast{
+    -webkit-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    -moz-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+}
+td.southwest{
+    -webkit-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    -moz-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
+    box-shadow: inset 4px -4px 0px 0px rgba(199,196,185,1);
 }
 
 .has_car{
