@@ -371,7 +371,7 @@ function grid_class(size, html_id, type){
        
     this.create_html = function(){
         /*Create the html table using the html for each cell*/
-        table_string = '<table class="grid">'
+        table_string = '<table class="grid '+this.type+'">'
         for (y=0; y<self.array.length; y++){
             table_string = table_string + '<tr>';
             var row = self.array[y];
