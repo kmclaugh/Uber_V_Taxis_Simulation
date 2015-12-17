@@ -109,6 +109,13 @@ table td.has_car.has_passenger div.heading_container div{
     background-image: url(passenger_car.svg);
 }
 
+/*Passenger styling*/
+table td.has_passenger{
+    background-image: url(passenger.svg);
+}
+table td.has_car.has_passenger{
+    background-image: none;
+}
 .mean_container{
     margin-left: 60px;
     margin-top: 40px;
