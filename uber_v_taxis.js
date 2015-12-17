@@ -816,20 +816,20 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
     this.turn_right= function(){
         /*turns right at an intercection based on current position and heading*/
         if (this.heading == 'east'){
-            this.move_south();
             this.heading = 'south';
+            this.move_south();
         }
         else if (this.heading == 'south'){
-            this.move_west();
             this.heading = 'west';
+            this.move_west();
         }
         else if (this.heading == 'north'){
-            this.move_east();
             this.heading = 'east';
+            this.move_east();
         }
         else if (this.heading == 'west'){
-            this.move_north();
             this.heading = 'north';
+            this.move_north();
         }
     }
     
@@ -885,6 +885,7 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         if (new_cell != false && new_cell.obstacle == false){
             this.remove_from();
             $('#'+new_cell.html_id).addClass('has_car');
+            $('#'+new_cell.html_id).addClass('heading_'+this.heading);
             if (this.passenger != false){
                 $('#'+new_cell.html_id).addClass('has_passenger');
             }
@@ -897,6 +898,10 @@ function car_class(type, grid, surge_needed, max_cruising_time, current_price, d
         /*removes the car from it's current cell*/
         if (this.current_cell != false){
             $('#'+this.current_cell.html_id).removeClass('has_car');
+            $('#'+this.current_cell.html_id).removeClass('heading_north');
+            $('#'+this.current_cell.html_id).removeClass('heading_south');
+            $('#'+this.current_cell.html_id).removeClass('heading_east');
+            $('#'+this.current_cell.html_id).removeClass('heading_west');
             if (this.passenger != false && this.current_cell.passengers.length == 0 ){
                 $('#'+this.current_cell.html_id).removeClass('has_passenger');
             }
@@ -921,10 +926,10 @@ function cell_class(x, y, obstacle, grid){
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
-            this.html = "<td id="+this.html_id+ " class='"+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "</td>";
+            this.html = "<td id="+this.html_id+ " class='"+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "<div class='heading_container'><div class='heading_north'></div><div class='heading_south'></div><div class='heading_east'></div><div class='heading_west'></div></div></td>";
         }
         else{
-            this.html = "<td id="+this.html_id+ " class='obstacle "+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"</td>";
+            this.html = "<td id="+this.html_id+ " class='obstacle "+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"<div></div></td>";
         }
         return this.html;
     }

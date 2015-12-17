@@ -46,16 +46,66 @@ td.southwest{
     -moz-box-shadow: inset -4px -4px 0px 0px rgba(199,196,185,1);
     box-shadow: inset 4px -4px 0px 0px rgba(199,196,185,1);
 }
-
-.has_car{
-    background-color: yellow;
+/*.has_car{
+    background-color: green!important;
+}*/
+.heading_container{
+    position: relative;
+    height: 100%;
+    width: 100%;
 }
-.has_passenger{
+td.has_car.heading_north div.heading_container div.heading_north{
+    background-image: url(Car.svg);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0%;
+    top: 0%;
+    -webkit-transform: rotate(0deg);
+	-moz-transform: rotate(0deg);
+	-ms-transform: rotate(0deg);
+	-o-transform: rotate(0deg);
+	transform: rotate(0deg);
+}
+td.has_car.heading_south div.heading_container div.heading_south{
+    background-image: url(Car.svg);
+    height: 100%;
+    width: 100%;
+    -webkit-transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-ms-transform: rotate(180deg);
+	-o-transform: rotate(180deg);
+	transform: rotate(180deg);
+}
+td.has_car.heading_east div.heading_container div.heading_east{
+    background-image: url(Car.svg);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0%;
+    top: 0%;
+    -webkit-transform: rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+}
+td.has_car.heading_west div.heading_container div.heading_west{
+    background-image: url(Car.svg);
+    height: 100%;
+    width: 100%;
+    -webkit-transform: rotate(270deg);
+	-moz-transform: rotate(270deg);
+	-ms-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
+	transform: rotate(270deg);
+}
+/*.has_passenger{
     background-color: blue;
 }
 .has_car.has_passenger{
     background-color: green;
-}
+}*/
 
 .mean_container{
     margin-left: 60px;
