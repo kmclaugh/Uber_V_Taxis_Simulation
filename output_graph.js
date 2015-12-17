@@ -48,7 +48,7 @@ function draw_output_graph(uber_grid, taxi_grid, svg, create){
    //Graph dimensions data
    var margin = {
         top: 30,
-        right: 50,
+        right: 40,
         bottom: 35,
         left: 50
     };
@@ -129,12 +129,20 @@ function draw_output_graph(uber_grid, taxi_grid, svg, create){
             .attr("transform", "translate(" + width + " ,0)")   
             .style("fill", "red")       
             .call(yAxisRight);
+        svg.append("text")// text label for the y axis
+            .attr("transform", "rotate(-90)")
+            .attr("y", width + margin.right/2)
+            .attr("x",0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .style("fill", "red")
+            .text("Surge");
             
         //Add a legend to the graph
         dataset = [uber_grid.demand_data, taxi_grid.demand_data, uber_grid.driver_data, uber_grid.surge_data];
-        var color_hash = {  0 : ["uber requests", "blue"],
-                1 : ['taxi requests', 'orange'],
-               2 : ["uber drivers", "black"],
+        var color_hash = {  0 : ["uber requests", "#0f0cf3"],
+                1 : ['taxi requests', '#bd66ff'],
+               2 : ["uber drivers", "#02e7ff"],
                3 : ["current surge", "red"]
              }
        
@@ -197,7 +205,7 @@ function draw_output_graph(uber_grid, taxi_grid, svg, create){
         var demand_path = svg.append('svg:path')
             .attr('d', demand_line_function(uber_grid.demand_data))
             .attr('id', 'uber_demand_path')
-            .attr('stroke', 'blue')
+            .attr('stroke', '#0f0cf3')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
             .attr('class', 'line');
@@ -205,7 +213,7 @@ function draw_output_graph(uber_grid, taxi_grid, svg, create){
         var taxi_path = svg.append('svg:path')
             .attr('d', demand_line_function(taxi_grid.demand_data))
             .attr('id', 'taxi_demand_path')
-            .attr('stroke', 'orange')
+            .attr('stroke', '#bd66ff')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
             .attr('class', 'line');
@@ -213,7 +221,7 @@ function draw_output_graph(uber_grid, taxi_grid, svg, create){
         var driver_path = svg.append('svg:path')
             .attr('d', demand_line_function(uber_grid.driver_data))
             .attr('id', 'uber_driver_path')
-            .attr('stroke', 'black')
+            .attr('stroke', '#02e7ff')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
             .attr('class', 'line');
