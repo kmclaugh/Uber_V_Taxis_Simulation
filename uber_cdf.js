@@ -133,11 +133,12 @@ function uber_cdf_graph_class(the_data, graph_container_id){
         self.x_axis_label
             .attr("x", self.width / 2 )
             .attr("y",  self.height+self.margin.bottom-5);
-        
-        //label for the y axis
         self.y_axis_label
             .attr("y", 0 - self.margin.left)
             .attr("x",0 - (self.height / 2));
+        self.graph_title
+            .attr("x", (self.width / 2))             
+            .attr("y", (0 - self.margin.top/2));
         
         //Update the line
         self.cdf_path.attr('d', self.uber_cdf_line_function(self.data));
@@ -209,6 +210,14 @@ function uber_cdf_graph_class(the_data, graph_container_id){
             .style("text-anchor", "middle")
             .text("Total Number of Drivers");
         
+        //Add the graph title
+        self.graph_title = self.svg_g.append("text")
+            .attr("x", (self.width / 2))             
+            .attr("y", (0 - self.margin.top/2))
+            .attr("text-anchor", "middle")  
+            .attr("class", "graph_title")
+            .text("Uber Driver Incentive Curve");
+        
         /*Create the line function.*/
         self.uber_cdf_line_function = d3.svg.line()
             .x(function(d) {return self.xRange(d.x);})
@@ -239,7 +248,7 @@ function uber_cdf_graph_class(the_data, graph_container_id){
         }
         self.margin = {
             top: 50,
-            right: 50,
+            right: 0,
             bottom: 40,
             left: left_margin()
         };

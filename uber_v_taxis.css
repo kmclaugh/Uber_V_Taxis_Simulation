@@ -1,6 +1,6 @@
 
 
-/*Graph styling*/
+/*Slider styling*/
 .mean_container{
     margin-left: 60px;
     margin-top: 40px;
@@ -17,9 +17,24 @@
 }
 .standard_dev_container{
     margin-top: 40px;
+    margin-right: 10px;
+    
+}
+@media (min-width: 767px){
+    .standard_dev_container{
+        float: right;
+    }
 }
 .standard_dev_container .slider.slider-vertical{
     height: 185px;
+}
+.graph_title{
+    font-size: 14px;
+}
+@media (min-width: 767px) {
+    .graph_title{
+        font-size: 16px;
+    }
 }
 .axis path,
 .axis line{
@@ -35,12 +50,6 @@
 .tick{
     stroke-dasharray: 1, 2;
 }
-.bar{
-    fill: FireBrick;
-}
-
-
-
 
 table.simulation_grid td{
     width: 20px;
