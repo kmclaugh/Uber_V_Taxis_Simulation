@@ -940,7 +940,6 @@ function cell_class(x, y, obstacle, grid){
         if (this.obstacle == false){
             var css_class_string = 'street ';
             if (this.headings.north != false && this.valid_options['north'].length != 0 && this.y < this.grid.size-1){
-                console.log(this.y, this.grid.size);
                 css_class_string += 'north ';
             }
             if (this.headings.south != false && this.valid_options['south'].length != 0 && this.y > 0){
