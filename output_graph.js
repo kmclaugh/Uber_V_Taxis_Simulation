@@ -218,10 +218,11 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
             
         /*Add a legend to the graph*/
         dataset = [self.uber_grid.demand_data, self.taxi_grid.demand_data, self.uber_grid.driver_data, self.uber_grid.surge_data];
-        var color_hash = {  0 : ["uber requests", "#0f0cf3"],
-                1 : ['taxi requests', '#bd66ff'],
-               2 : ["uber drivers", "#02e7ff"],
-               3 : ["current surge", "red"]
+        var color_hash = {
+                0 : ["uber requests", "#0f0cf3"],
+                1 : ["current surge", "red"],
+                2 : ['taxi requests', '#bd66ff'],
+                3 : ["uber drivers", "#02e7ff"]
              }
         
         self.legend = self.svg.append("g")

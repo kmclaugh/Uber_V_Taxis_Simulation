@@ -16,7 +16,6 @@
     }
 }
 .standard_dev_container{
-    margin-left: 50px;
     margin-top: 40px;
 }
 .standard_dev_container .slider.slider-vertical{
@@ -43,11 +42,11 @@
 
 
 
-table.grid td{
+table.simulation_grid td{
     width: 20px;
     height: 20px;
 }
-table.grid{
+table.simulation_grid{
     border: solid 1px;
 }
 td.street{
@@ -65,7 +64,7 @@ td.west{
 td.east{
     border-top: dashed 3px white;
 }
-.grid td.obstacle{
+.simulation_grid td.obstacle{
     background-color: #f0eee6;
     border: none;
 }
