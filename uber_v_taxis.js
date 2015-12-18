@@ -182,7 +182,7 @@ function time_step(){
     simulation_time.setSeconds(simulation_time.getSeconds() + simulation_time_per_step);
     update_stats(uber_grid);
     update_stats(taxi_grid);
-    update_output_graph(uber_grid, taxi_grid);
+    output_graph.update();
 }
 
 function update_stats(grid){

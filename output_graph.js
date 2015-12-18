@@ -1,19 +1,10 @@
-//Global variables for the output graph
-//Store the line_functions here so they can be updated later
-var xRangeDemand;
-var y0RangeDemand;
-var y1RangeDemand;
-var demand_line_function;
-var surge_line_function;
-var demand_path;
-var driver_path;
-var surge_path;
+var output_graph;
 
 $(window).load(function () {
     
     $(document).ready(function () {
         //Draw the output graph
-        var output_graph = new output_graph_class(uber_grid, taxi_grid, 'uber_output_graph');
+        output_graph = new output_graph_class(uber_grid, taxi_grid, 'uber_output_graph');
         output_graph.draw();
         
         //When the window resizes, resize the graph
@@ -31,6 +22,32 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
     self.uber_grid = uber_grid;
     self.taxi_grid = taxi_grid;
     self.graph_container_id = graph_container_id;
+    
+    self.update = function(){
+        /*Updates the graph with the new data*/
+        
+        //copy the current simulation to a new variable so it won't update
+        var current_sim_time = new Date(simulation_time);
+        
+        //Update the uber passenger, driver, and surge data
+        var new_demand_data = {x:current_sim_time, y:self.uber_grid.passengers_list.length};
+        self.uber_grid.demand_data.push(new_demand_data);
+        var new_driver_data = {x:current_sim_time, y :self.uber_grid.current_total_cars};
+        self.uber_grid.driver_data.push(new_driver_data);
+        var new_surge_data = {x:current_sim_time, y:self.uber_grid.current_surge};
+        self.uber_grid.surge_data.push(new_surge_data);
+        
+        //Update the taxi passenger data
+        var new_demand_data = {x:current_sim_time, y:self.taxi_grid.passengers_list.length};
+        self.taxi_grid.demand_data.push(new_demand_data);
+        
+        //Update the lines
+        self.demand_path.attr("d", self.demand_line_function(self.uber_grid.demand_data));
+        self.taxi_path.attr("d", self.demand_line_function(self.taxi_grid.demand_data));
+        self.driver_path.attr("d", self.demand_line_function(self.uber_grid.driver_data));
+        self.surge_path.attr("d", self.surge_line_function(self.uber_grid.surge_data));
+    
+    }
     
     self.resize = function(){
         /*Resizes the graph due to a window size change*/
@@ -297,15 +314,6 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
             .attr('fill', 'none')
             .attr('class', 'line');
         
-        //Use the line functions to add the lines to the svg graph
-        //d3.select('#uber_demand_path')
-        //    .attr("d", demand_line_function(uber_grid.demand_data));
-        //d3.select('#taxi_demand_path')
-        //    .attr("d", demand_line_function(taxi_grid.demand_data));
-        //d3.select('#uber_driver_path')
-        //    .attr("d", demand_line_function(uber_grid.driver_data));
-        //d3.select('#uber_surge_path')
-        //    .attr("d", surge_line_function(uber_grid.surge_data));
     }//End draw function
     
     /* Reusable functions********************/
@@ -374,28 +382,4 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
     }
 
 }//End output_graph_class
-    
 
-//function update_output_graph(uber_grid, taxi_grid){
-//    /*Creates the next data points for the passenger, surge, and driver data and updates the graph*/
-//    
-//    //copy the current simulation to a new variable so it won't update
-//    var current_sim_time = new Date(simulation_time);
-//    
-//    //Update the uber passenger, driver, and surge data
-//    var new_demand_data = {x:current_sim_time, y:uber_grid.passengers_list.length};
-//    uber_grid.demand_data.push(new_demand_data);
-//    var new_driver_data = {x:current_sim_time, y :uber_grid.current_total_cars};
-//    uber_grid.driver_data.push(new_driver_data);
-//    var new_surge_data = {x:current_sim_time, y:uber_grid.current_surge};
-//    uber_grid.surge_data.push(new_surge_data);
-//    
-//    //Update the taxi passenger data
-//    var new_demand_data = {x:current_sim_time, y:taxi_grid.passengers_list.length};
-//    taxi_grid.demand_data.push(new_demand_data);
-//    
-//    //Select the svg element and redraw the graph
-//    var svg = d3.select('#uber_output_graph_svg_g');
-//    draw_output_graph(uber_grid, taxi_grid, svg, false);
-//        
-//}

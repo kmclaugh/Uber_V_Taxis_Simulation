@@ -81,6 +81,16 @@ function generate_data(){
     return uber_cdf_data;
 }
 
+function uber_cdf_graph_class(the_data, graph_container_id){
+    /*Class for drawing, resizing and updating the uber cdf graph*/
+    
+    var self = this;
+    self.margin = {};
+    self.data = the_data;
+    self.graph_container_id = graph_container_id
+
+}
+
 function draw_uber_cdf_graph(the_data){
     /*draws the uber cdf graph based on the given cdf data*/
     
