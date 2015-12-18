@@ -28,19 +28,21 @@ $(window).load(function () {
         
         //Anytime eith ther mean or standard dev slider changes, regenerate the uber cdf data and update the graph
          $(".cdf_slider").on("slide", function(slideEvt) {
-            var uber_cdf_data = generate_data();//update data
-            
-            //redraw cdf line
-            var svg = d3.select('#graph').transition();
-            svg.select('.line')
-                .duration(750)
-                .attr("d", uber_cdf_line_function(uber_cdf_data));
+            uber_cdf_data = generate_data();//update data
+            //update the cdf graph
+            uber_cdf_graph.update(uber_cdf_data);
         });
         
         //create initial cdf data
         var uber_cdf_data = generate_data();
         //draw the cdf graph
-        uber_cdf_line_function = draw_uber_cdf_graph(uber_cdf_data);
+        var uber_cdf_graph = new uber_cdf_graph_class(uber_cdf_data, 'uber_cdf_graph');
+        uber_cdf_graph.draw();
+        
+        //When the window resizes, resize the graph
+        $( window ).resize(function() {
+            uber_cdf_graph.resize();
+        });
         
     });
 });
@@ -87,102 +89,167 @@ function uber_cdf_graph_class(the_data, graph_container_id){
     var self = this;
     self.margin = {};
     self.data = the_data;
-    self.graph_container_id = graph_container_id
-
-}
-
-function draw_uber_cdf_graph(the_data){
-    /*draws the uber cdf graph based on the given cdf data*/
+    self.graph_container_id = graph_container_id;
     
-    //Set margins and width
-    var margin = {
-        top: 30,
-        right: 0,
-        bottom: 35,
-        left: 50
-    };
-    var width = 500 - margin.right - margin.left;
-    var height = 250 - margin.top - margin.bottom;
-    
-    //Add svg element to graph div
-    var svg = d3.select('#graph')
-        .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-            .attr("transform", 
-                  "translate(" + margin.left + "," + margin.top + ")");
-    
-    //Add the graph title
-    svg.append("text")
-        .attr("x", (width / 2))             
-        .attr("y", (0 - margin.top/2))
-        .attr("text-anchor", "middle")  
-        .style("font-size", "16px") 
-        .text("Uber Driver Incentive Curve");
+    self.update = function(the_data){
+        /*Updates the graph with the new data*/
+        self.data = the_data;
         
-    var xRange = d3.scale.linear()
-        .range([0, width])
-        .domain([1, max_cdf_surge]);
-      
-    var yRange = d3.scale.linear()
-        .range([height, 0])
-        .domain([0, 100]);
+        //redraw cdf line
+        var svg = d3.select('#'+self.graph_container_id).transition();
+        svg.select('.line')
+            .duration(750)
+            .attr("d", self.uber_cdf_line_function(self.data));
     
-    var xAxis = d3.svg.axis()
-        .scale(xRange)
-        .tickSize(5)
-        .tickSubdivide(true);
-      
-    var yAxis = d3.svg.axis()
-        .scale(yRange)
-        .tickSize(5)
-        .orient('left')
-        .tickSubdivide(true);
-  
-    //add the x-axis
-    svg.append('svg:g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + height + ')')
-        .call(xAxis);
+    }//end update function
     
-    svg.append("text")//label for the x axis
-        .attr("x", width / 2 )
-        .attr("y",  height+margin.bottom-5)
-        .style("text-anchor", "middle")
-        .text("Surge");
+    self.resize = function(){
+        /*Resizes the graph due to a window size change*/
+        
+        //Get the new graph dimensions
+        self.set_graph_dimensions();
+        
+        //Update the svg dimensions
+        self.svg
+            .attr("width", self.width + self.margin.left + self.margin.right)
+            .attr("height", self.height + self.margin.top + self.margin.bottom);
+        self.svg_g
+            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
+            
+        //Rescale the range functions to account for the new dimensions
+        self.xRange.range([0, self.width]);
+        self.yRange.range([self.height, 0]);
+        
+        //Resize the axis functions
+        self.xAxis.scale(self.xRange);
+        self.yAxis.scale(self.yRange);
+        
+        //Resize the axis
+        self.x_axis.attr("transform", "translate(0," + self.height + ")")
+            .call(self.xAxis);
+        self.y_axis.call(self.yAxis);
+        
+        //Update label positions
+        self.x_axis_label
+            .attr("x", self.width / 2 )
+            .attr("y",  self.height+self.margin.bottom-5);
+        
+        //label for the y axis
+        self.y_axis_label
+            .attr("y", 0 - self.margin.left)
+            .attr("x",0 - (self.height / 2));
+        
+        //Update the line
+        self.cdf_path.attr('d', self.uber_cdf_line_function(self.data));
+            
+    }//end resize function
+        
     
-    //Add the y-axis
-    svg.append('svg:g')
-        .attr('class', 'y axis')
-        .call(yAxis)
-    svg.append("text")//label for the y axis
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x",0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Total Number of Drivers");
+    self.draw = function(){
+        /*Draws the graph according to the size of the graph element*/
+        
+        //Set the graph dimensions
+        self.set_graph_dimensions();
+        
+        //Create the svg element
+        self.svg = d3.select('#'+self.graph_container_id)
+            .append("svg")
+                .attr("width", self.width + self.margin.left + self.margin.right)
+                .attr("height", self.height + self.margin.top + self.margin.bottom)
+        
+        //Add layer to the svg element
+        self.svg_g = self.svg.append("g")
+                    .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
+        
+        /*Range functions*/
+        self.xRange = d3.scale.linear()
+            .range([0, self.width])
+            .domain([1, max_cdf_surge]);
+          
+        self.yRange = d3.scale.linear()
+            .range([self.height, 0])
+            .domain([0, 100]);
+        
+        /*Axis functions*/
+        self.xAxis = d3.svg.axis()
+            .scale(self.xRange)
+            .tickSize(5)
+            .tickSubdivide(true);
+          
+        self.yAxis = d3.svg.axis()
+            .scale(self.yRange)
+            .tickSize(5)
+            .orient('left')
+            .tickSubdivide(true);
+        
+        /*Add axis elements*/
+        self.x_axis = self.svg_g.append('svg:g')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + self.height + ")");
+        self.x_axis.call(self.xAxis);
+        
+        self.y_axis = self.svg_g.append('g')
+            .attr("class", "y axis")
+        self.y_axis.call(self.yAxis);
+        
+        /*Add axis label*/
+        //label for the x axis
+        self.x_axis_label = self.svg_g.append("text")
+            .attr("x", self.width / 2 )
+            .attr("y",  self.height+self.margin.bottom-5)
+            .style("text-anchor", "middle")
+            .text("Surge");
+        
+        //label for the y axis
+        self.y_axis_label = self.svg_g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - self.margin.left)
+            .attr("x",0 - (self.height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Total Number of Drivers");
+        
+        /*Create the line function.*/
+        self.uber_cdf_line_function = d3.svg.line()
+            .x(function(d) {return self.xRange(d.x);})
+            .y(function(d) {return self.yRange(d.y);})
+            .interpolate('basis');
+        
+        /*Create the path*/
+         self.cdf_path = self.svg_g.append('svg:path')
+            .attr('d', self.uber_cdf_line_function(self.data))
+            .attr('stroke', 'blue')
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('class', 'line');
+            
+    }//end draw function
     
-    //create the uber cdf line function based on the ranges
-    var uber_cdf_line_function = d3.svg.line()
-        .x(function(d) {
-            return xRange(d.x);
-        })
-        .y(function(d) {
-            return yRange(d.y);
-        })
-        .interpolate('basis');
-    
-    //Add the path (line) to the svg element based on the cdf line function
-    svg.append('svg:path')
-        .attr('d', uber_cdf_line_function(the_data))
-        .attr('stroke', 'blue')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none')
-        .attr('class', 'line');
-    
-    return uber_cdf_line_function;
+    /* Reusable functions********************/
+    self.set_graph_dimensions = function(){
+        /*Resets the higheth width and margins based on the column width*/
+        var graph_container_width = $('#'+self.graph_container_id).width();
+        var left_margin = function(){
+            if (graph_container_width < 400){
+                return 45;
+            }
+            else{
+                return 50;
+            }
+        }
+        self.margin = {
+            top: 50,
+            right: 50,
+            bottom: 40,
+            left: left_margin()
+        };
+        self.width = graph_container_width - self.margin.right - self.margin.left;
+        if (self.width > 500){
+            self.width = 500;
+        }
+        self.height = 250 - self.margin.top - self.margin.bottom;
+    }
+
 }
 
 function cdf(x, mean, variance) {
