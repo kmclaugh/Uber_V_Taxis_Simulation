@@ -108,7 +108,7 @@ function uber_cdf_graph_class(the_data, graph_container_id){
         
         //Get the new graph dimensions
         self.set_graph_dimensions();
-        
+        console.log(self.width, $( window ).width())
         //Update the svg dimensions
         self.svg
             .attr("width", self.width + self.margin.left + self.margin.right)
