@@ -23,7 +23,7 @@ function reset_global_variables(){
     //Globals
     total_steps = 0;
     simulation_start_time = new Date(2015, 11, 15, 12, 0);
-    simulation_end_time = new Date(2015, 11, 15, 23, 59);
+    simulation_end_time = new Date(2015, 11, 15, 23, 59, 59);
     simulation_time = new Date(simulation_start_time);
     timer = null;
     //taxi

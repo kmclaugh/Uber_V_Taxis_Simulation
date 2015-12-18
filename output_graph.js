@@ -68,7 +68,9 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
         self.y1RangeDemand.range([self.height, 0]);
         
         //Resize the axis functions
-        self.xAxis.scale(self.xRangeDemand);
+        self.xAxis
+            .scale(self.xRangeDemand)
+            .ticks(Math.max(Math.ceil(self.width/100), 2));
         self.yAxisLeft.scale(self.y0RangeDemand);
         self.yAxisRight.scale(self.y1RangeDemand);
         
@@ -157,8 +159,7 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
         /*Axis functions*/
         self.xAxis = d3.svg.axis()
             .scale(self.xRangeDemand)
-            .ticks(6);
-          
+            .ticks(Math.max(Math.ceil(self.width/100), 2));
         self.yAxisLeft = d3.svg.axis()
             .scale(self.y0RangeDemand)
             .tickSize(5)
@@ -371,7 +372,7 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
         }
         self.margin = {
             top: 50,
-            right: 50,
+            right: 35,
             bottom: 40,
             left: left_margin()
         };
