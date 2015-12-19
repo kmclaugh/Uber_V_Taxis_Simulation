@@ -16,8 +16,8 @@ function reset_global_variables(){
     //Macros
     real_time_per_step = 100;
     simulation_time_per_step = 30;//seconds
-    base_uber = $('#uber_base_price').autoNumeric('get');
-    taxi_price = $('#taxi_price').autoNumeric('get');
+    base_uber = $('#uber_base_price').autoNumeric('get') * (simulation_time_per_step/60);
+    taxi_price = $('#taxi_price').autoNumeric('get') * (simulation_time_per_step/60);
     number_of_taxis = $('#number_of_taxis').val();
     if (number_of_taxis > 100){
         number_of_taxis = 100;
@@ -96,8 +96,8 @@ $(window).load(function () {
         taxi_grid.create_html();
         
         //Set up autoNumerics
-        $('#taxi_price').autoNumeric('init', {aForm: true, aSign: "$",vMin: 0.00, vMax: 200});
-        $('#uber_base_price').autoNumeric('init', {aForm: true, aSign: "$", vMin: 0.00, vMax: 200});
+        $('#taxi_price').autoNumeric('init', {aForm: true, aSign: "$",vMin: 0.01, vMax: 200});
+        $('#uber_base_price').autoNumeric('init', {aForm: true, aSign: "$", vMin: 0.01, vMax: 200});
         
         
         
@@ -107,11 +107,12 @@ $(window).load(function () {
         
         
         //Update the uber base price, number of taxis, or taxi price if the inputs change
+        //Convert from per minute to per step
         $('#uber_base_price').change(function(){
-            base_uber = $('#uber_base_price').autoNumeric('get');
+            base_uber = $('#uber_base_price').autoNumeric('get') * (simulation_time_per_step/60);
         });
         $('#taxi_price').change(function(){
-            taxi_price = $('#taxi_price').autoNumeric('get');
+            taxi_price = $('#taxi_price').autoNumeric('get') * (simulation_time_per_step/60);
         });
         $('#number_of_taxis').change(function(){
             number_of_taxis = Number($('#number_of_taxis').val());
