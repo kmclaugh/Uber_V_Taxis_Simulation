@@ -103,6 +103,8 @@ input.simulation_inputs{
 }
 .simulation_grid{
     padding-bottom: 10px;
+    margin-right: auto;
+    margin-left: auto;
 }
 table.simulation_grid td{
     width: 16px;
