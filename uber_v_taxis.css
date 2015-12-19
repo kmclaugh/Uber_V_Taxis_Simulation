@@ -216,21 +216,40 @@ td.has_car.heading_west div.heading_west{
 
 /*Taxi car style*/
 table.taxi td.has_car div.heading_container div{
-    background-image: url(taxi.svg);
+    background-image: url(taxi.jpg);
 }
 /*Uber car style*/
 table.uber td.has_car div.heading_container div{
-    background-image: url(uber.svg);
+    background-image: url(uber.jpg);
 }
 /*Passenger carrying car style*/
 table td.has_car.has_passenger div.heading_container div{
-    background-image: url(passenger_car.svg);
+    background-image: url(passenger_car.jpg);
 }
 
 /*Passenger styling*/
 table td.has_passenger{
-    background-image: url(passenger.svg);
+    background-image: url(passenger.jpg);
 }
 table td.has_car.has_passenger{
     background-image: none;
+}
+@media (min-width: 1200px){
+    /*Taxi car style*/
+    table.taxi td.has_car div.heading_container div{
+        background-image: url(taxi.svg);
+    }
+    /*Uber car style*/
+    table.uber td.has_car div.heading_container div{
+        background-image: url(uber.svg);
+    }
+    /*Passenger carrying car style*/
+    table td.has_car.has_passenger div.heading_container div{
+        background-image: url(passenger_car.svg);
+    }
+    
+    /*Passenger styling*/
+    table td.has_passenger{
+        background-image: url(passenger.svg);
+    }
 }
