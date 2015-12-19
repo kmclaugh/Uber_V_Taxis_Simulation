@@ -197,14 +197,15 @@ function update_stats(grid){
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
     
     //Update html objects with new values
-    $('#'+grid.type+'_average_ride_price').text(price_per_minute);
-    $('#'+grid.type+'_average_driver_salary').text(average_driver_salary);
-    $('#'+grid.type+'_longest_wait_time').text(convert_timesteps_to_time(grid.longest_wait_time));
-    $('#'+grid.type+'_average_wait_time').text(convert_timesteps_to_time(average_wait_time));
+    "[name='value']"
+    $('[name="'+grid.type+'_average_ride_price"]').text(price_per_minute);
+    $('[name="'+grid.type+'_average_driver_salary"]').text(average_driver_salary);
+    $('[name="'+grid.type+'_longest_wait_time"]').text(convert_timesteps_to_time(grid.longest_wait_time));
+    $('[name="'+grid.type+'_average_wait_time"]').text(convert_timesteps_to_time(average_wait_time));
     
     if (grid.type == 'uber') { 
-        $('#'+grid.type+'_current_surge').text(grid.current_surge);
-        $('#'+grid.type+'_current_total_ubers').text(grid.current_total_cars);
+        $('[name="'+grid.type+'_current_surge"]').text(grid.current_surge);
+        $('[name="'+grid.type+'_current_total_ubers"]').text(grid.current_total_cars);
     }
     
     //Format the simulation time for user readability
@@ -926,10 +927,10 @@ function cell_class(x, y, obstacle, grid){
         if (this.obstacle == false){
             var heading_string = this.headings.make_headings_string();
             var valid_options_string = JSON.stringify(this.valid_options);
-            this.html = "<td id="+this.html_id+ " class='"+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+ "<div class='heading_container'><div class='heading_north'></div><div class='heading_south'></div><div class='heading_east'></div><div class='heading_west'></div></div></td>";
+            this.html = "<td id="+this.html_id+ " class='"+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" '>"+ "<div class='heading_container'><div class='heading_north'></div><div class='heading_south'></div><div class='heading_east'></div><div class='heading_west'></div></div></td>";
         }
         else{
-            this.html = "<td id="+this.html_id+ " class='obstacle "+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" title='"+valid_options_string+"'>"+"<div></div></td>";
+            this.html = "<td id="+this.html_id+ " class='obstacle "+this.make_css_class_string()+"' x="+this.x+" y="+this.y+" '>"+"<div></div></td>";
         }
         return this.html;
     }
