@@ -195,13 +195,15 @@ function update_stats(grid){
     var average_driver_salary = grid.total_money/grid.total_driver_time;// $/timestep
     average_driver_salary = average_driver_salary * (1/simulation_time_per_step) * 60 * 60;// $/hour
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
+    if (isNaN(price_per_minute)){
+        price_per_minute = 0;
+    }
     
     //Update html objects with new values
-    "[name='value']"
-    $('[name="'+grid.type+'_average_ride_price"]').text(price_per_minute);
-    $('[name="'+grid.type+'_average_driver_salary"]').text(average_driver_salary);
     $('[name="'+grid.type+'_longest_wait_time"]').text(convert_timesteps_to_time(grid.longest_wait_time));
     $('[name="'+grid.type+'_average_wait_time"]').text(convert_timesteps_to_time(average_wait_time));
+    $('[name="'+grid.type+'_average_ride_price"]').text('$'+price_per_minute.toFixed(2));
+    $('[name="'+grid.type+'_average_driver_salary"]').text('$'+average_driver_salary.toFixed(2));
     
     if (grid.type == 'uber') { 
         $('[name="'+grid.type+'_current_surge"]').text(grid.current_surge);

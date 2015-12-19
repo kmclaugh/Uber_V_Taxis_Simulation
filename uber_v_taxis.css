@@ -92,9 +92,6 @@ input.simulation_inputs{
     font-weight: bold;
     text-align: center;
 }
-#taxi_grid{
-    float: right;
-}
 .simulation_grid{
     padding-bottom: 10px;
 }
@@ -110,8 +107,8 @@ table.simulation_grid td{
 }
 @media (min-width: 1200px){
     table.simulation_grid td{
-        width: 30px;
-        height: 30px;
+        width: 25px;
+        height: 25px;
     }
 }
 table.simulation_grid{
