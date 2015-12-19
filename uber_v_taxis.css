@@ -213,43 +213,38 @@ td.has_car.heading_west div.heading_west{
 	-o-transform: rotate(270deg);
 	transform: rotate(270deg);
 }
-
+td.has_car div{
+    background-size: cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
+}
 /*Taxi car style*/
 table.taxi td.has_car div.heading_container div{
-    background-image: url(taxi.jpg);
+    background-image: url(taxi.png);
 }
 /*Uber car style*/
 table.uber td.has_car div.heading_container div{
-    background-image: url(uber.jpg);
+    background-image: url(uber.png);
 }
 /*Passenger carrying car style*/
 table td.has_car.has_passenger div.heading_container div{
-    background-image: url(passenger_car.jpg);
+    background-image: url(passenger_car.png);
 }
 
 /*Passenger styling*/
-table td.has_passenger{
-    background-image: url(passenger.jpg);
+table.uber td.has_passenger{
+    background-image: url(passenger.png);
+    background-size: cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
+}
+table.taxi td.has_passenger{
+    background-image: url(passenger_taxi.png);
+    background-size: cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
 }
 table td.has_car.has_passenger{
     background-image: none;
 }
-@media (min-width: 1200px){
-    /*Taxi car style*/
-    table.taxi td.has_car div.heading_container div{
-        background-image: url(taxi.svg);
-    }
-    /*Uber car style*/
-    table.uber td.has_car div.heading_container div{
-        background-image: url(uber.svg);
-    }
-    /*Passenger carrying car style*/
-    table td.has_car.has_passenger div.heading_container div{
-        background-image: url(passenger_car.svg);
-    }
-    
-    /*Passenger styling*/
-    table td.has_passenger{
-        background-image: url(passenger.svg);
-    }
-}
+
