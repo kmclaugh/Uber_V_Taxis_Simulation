@@ -18,18 +18,26 @@
         width: 500px;
     }
 }
-.standard_dev_container{
+#stand_dev_slider{
     margin-top: 40px;
+}
+.horizontal_slider{
     margin-right: 10px;
     
 }
 @media (min-width: 767px){
-    .standard_dev_container{
+    .horizontal_slider{
         float: right;
     }
 }
-.standard_dev_container .slider.slider-vertical{
+.horizontal_slider .slider.slider-vertical{
     height: 185px;
+}
+.change_demand_container{
+    text-align: center;
+}
+#demand_slider_container{
+    margin-top: 40px;
 }
 /*Graph styling*/
 .graph_title{

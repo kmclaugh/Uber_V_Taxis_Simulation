@@ -62,8 +62,14 @@
                 </div>
             </div>
             <div class='row'>
+                <div class='change_demand_container'>
+                    <input type="checkbox" id="change_demand" value="change_demand" checked>
+                    Auto-change Demand
+                </div>
+            </div>
+            <div class='row'>
                 <div class='col-xs-1 col-sm-3'>
-                    <div class='standard_dev_container'>
+                    <div class='horizontal_slider' id='demand_slider_container'>
                         <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
                     </div>
                 </div>
@@ -187,7 +193,7 @@
             </div>
             <div class='row'>
                 <div class='col-xs-1 col-sm-1'>
-                    <div class='standard_dev_container'>
+                    <div id='stand_dev_slider' class='horizontal_slider'>
                         <input id="standard_dev" class='cdf_slider' type="text" />
                     </div>
                 </div>
@@ -209,7 +215,7 @@
                                 <span>Taxi Price<br>per Minute</span>
                             </div>
                             <div class='col-xs-3'>
-                                <input id='taxi_price' class='simulation_inputs' value='.5'/>
+                                <input id='taxi_price' class='simulation_inputs' value='.25'/>
                             </div>
                         </div>
                         <div class='row'>
@@ -217,7 +223,7 @@
                                 <span>Uber 1x Surge Price<br>per Minute</span>
                             </div>
                             <div class='col-xs-3'>
-                                <input id='uber_base_price' class='simulation_inputs' value='.5'/>
+                                <input id='uber_base_price' class='simulation_inputs' value='.1'/>
                             </div>
                         </div>
                     </div>

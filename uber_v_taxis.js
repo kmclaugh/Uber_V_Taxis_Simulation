@@ -10,6 +10,7 @@ var simulation_time;
 var total_steps;
 var uber_grid;
 var taxi_grid;
+var auto_changing = false;
 
 function reset_global_variables(){
     /*Sets the global vairables and grid stats*/
@@ -30,6 +31,7 @@ function reset_global_variables(){
     simulation_end_time = new Date(2015, 11, 15, 23, 59, 59);
     simulation_time = new Date(simulation_start_time);
     timer = null;
+    auto_changing = false;
     //taxi
     taxi_grid.car_list = [];
     taxi_grid.passengers_list = [];
@@ -162,7 +164,7 @@ $(window).load(function () {
             create_taxis(number_of_taxis);
             $('#mean').slider('enable');
             $('#standard_dev').slider('enable');
-            update_output_graph(uber_grid, taxi_grid);
+            output_graph.update();
         });
         
         //Initialize the demand slider
@@ -178,7 +180,9 @@ $(window).load(function () {
         $("#demand_slider").on("slide", function(slideEvt) {
             uber_grid.current_demand = slideEvt.value;
             taxi_grid.current_demand = slideEvt.value;
-            $("#current_demand").val(slideEvt.value);
+            if (auto_changing == false){
+                $('#change_demand').attr('checked', false);
+            }
         });
     
     });
@@ -187,6 +191,11 @@ $(window).load(function () {
 function time_step(){
     /*Function that runs every time step. Cars move, passengers are picked up or dropped off,
      *number of reuqests are increased or decreased, stats and graphs are updated*/
+    
+    //Auto change demand if it is checked
+    if ($('#change_demand').is(':checked')) {
+        auto_change_demand();
+    }
     
     //Move cars and update ride requests
     uber_grid.time_step_logic();
@@ -198,6 +207,71 @@ function time_step(){
     update_stats(uber_grid);
     update_stats(taxi_grid);
     output_graph.update();
+}
+
+function auto_change_demand(){
+    /*Automatically fluctuates the demand based on some predetermined value*/
+    var old_demand = uber_grid.current_demand;
+    switch (simulation_time.getTime()){
+        case new Date(2015, 11, 15, 12, 20).getTime():
+            var new_demand = 5;
+            break;
+        
+        //Staircase demand
+        case new Date(2015, 11, 15, 13, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 13, 30).getTime():
+            var new_demand = 10;
+            break;
+        
+        case new Date(2015, 11, 15, 14, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 14, 30).getTime():
+            var new_demand = 20;
+            break;
+        
+        case new Date(2015, 11, 15, 15, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 15, 30).getTime():
+            var new_demand = 30;
+            break;
+        
+        case new Date(2015, 11, 15, 16, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 16, 30).getTime():
+            var new_demand = 40;
+            break;
+        
+        //Drop deman to 1
+        case new Date(2015, 11, 15, 17, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 17, 30).getTime():
+            var new_demand = 1;
+            break;
+        
+        //Spike demand for 30 min
+        case new Date(2015, 11, 15, 18, 0).getTime():
+            var new_demand = 0;
+            break;
+        case new Date(2015, 11, 15, 18, 30).getTime():
+            var new_demand = 100;
+            break;
+        case new Date(2015, 11, 15, 19, 30).getTime():
+            var new_demand = 0;
+            break;
+        
+        default:
+            var new_demand = old_demand;
+    }
+    auto_changing = true;
+    $('#demand_slider').slider('setValue', new_demand, true, true);
+    auto_changing = false;
+    
 }
 
 function update_stats(grid){
