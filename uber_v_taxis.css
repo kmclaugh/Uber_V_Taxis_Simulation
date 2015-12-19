@@ -36,6 +36,11 @@
 .change_demand_container{
     text-align: center;
 }
+.slider_label {
+	transform: rotate(90deg);
+	transform-origin: left top 0;
+    float: right;
+}
 #demand_slider_container{
     margin-top: 40px;
 }

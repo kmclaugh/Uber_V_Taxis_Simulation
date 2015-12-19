@@ -9,6 +9,7 @@
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <script src="d3.v3.min.js"></script>
         <script src="autoNumeric.js"></script>
+        <script src="intro.js"></script>
         
         <script type="text/javascript" src="bootstrap-slider.js"></script>
         <script type="text/javascript" src="uber_v_taxis.js"></script>
@@ -16,6 +17,7 @@
         <script type="text/javascript" src="output_graph.js"></script>
         <link rel="stylesheet" href="uber_v_taxis.css">
         <link rel="stylesheet" href="bootstrap-slider.css">
+        <link rel="stylesheet" href="introjs.css">
     </head>
     <body>
         <div class='container'>
@@ -25,9 +27,12 @@
                     <h3>Uber vs Taxis Simulation</h3>
                 </div>
             </div>
-            <div class='row simulation_start'>
-                <div class='hidden-xs col-sm-4'></div>
-                <div class='col-xs-4 col-sm-1'>
+            <div class='row simulation_start' data-step="1" data-intro="Control the simulation from here.">
+                <div class='hidden-xs col-sm-3'></div>
+                <div class='col-xs-2 col-sm-1'>
+                    <button onclick="javascript:introJs().start();">Tour</button>
+                </div>
+                <div class='col-xs-2 col-sm-1'>
                     <button id='start'>start</button>
                 </div>
                 <div class='col-xs-4 col-sm-2'>
@@ -48,11 +53,11 @@
                 <div class='col-sm-1 hidden-xs'></div>
                 <div class='col-sm-5 taxi_column'>
                     <div class='simulation_header'>Taxi</div>
-                    <div id='taxi_grid' class='simulation_grid'></div>
+                    <div id='taxi_grid' class='simulation_grid' data-step="2" data-intro="This is the taxi world"></div>
                 </div>
                 <div class='col-sm-5 uber_column'>
                     <div class='simulation_header'>Uber</div>
-                    <div id='uber_grid' class='simulation_grid'></div>
+                    <div id='uber_grid' class='simulation_grid' data-step="3" data-intro="This is the uber world"></div>
                 </div>
             </div>
             
@@ -63,24 +68,27 @@
             </div>
             <div class='row'>
                 <div class='change_demand_container'>
-                    <input type="checkbox" id="change_demand" value="change_demand" checked>
-                    Auto-change Demand
+                    <div data-step="5" data-intro="or just let demand automatically flucuate.">
+                        <input type="checkbox" id="change_demand" value="change_demand" checked>
+                        Auto-change Demand
+                    </div>
                 </div>
             </div>
             <div class='row'>
                 <div class='col-xs-1 col-sm-3'>
-                    <div class='horizontal_slider' id='demand_slider_container'>
-                        <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical"/>
+                    <div class='horizontal_slider' id='demand_slider_container' data-step="4" data-intro="You can manaully increase or decrease the demand for both worlds here,">
+                        <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical" />
                     </div>
+                    
                 </div>
                 <div class='col-xs-10 col-sm-6'>
-                    <div id="uber_output_graph"></div>
+                    <div id="uber_output_graph" data-step="6" data-intro="The results of both worlds are graphed in real time here."></div>
                 </div>
             </div>
             <div class='row'>
                 <div class='col-xs-12'>&nbsp</div>
             </div>
-            <div id='xs_small_stats_view' class='visible-xs'>
+            <div id='xs_small_stats_view' class='visible-xs' >
                 <div class='row'>
                     <div class='col-xs-4'></div>
                     <div class='col-xs-3 stats header'>Taxi</div>
@@ -186,22 +194,22 @@
             <div class='row'>
                 <div class='col-xs-1 col-sm-1'></div>
                 <div class='col-xs-10 col-sm-6'>
-                    <div class='mean_container'>
+                    <div class='mean_container' data-step="8" data-intro="you can change its mean here,">
                         <input id="mean" class='cdf_slider' type="text" />
                     </div>
                 </div>
             </div>
             <div class='row'>
                 <div class='col-xs-1 col-sm-1'>
-                    <div id='stand_dev_slider' class='horizontal_slider'>
+                    <div id='stand_dev_slider' class='horizontal_slider' data-step="9" data-intro="and its standard deviation here.">
                         <input id="standard_dev" class='cdf_slider' type="text" />
                     </div>
                 </div>
                 <div class='col-xs-10 col-sm-6'>
-                    <div id="uber_cdf_graph"></div>
+                    <div id="uber_cdf_graph" data-step="7" data-intro="This graph shows the total number of uber drivers that will work for each surge price. It is a normal distribution so,"></div>
                 </div>
                 <div class='col-xs-10 col-sm-3'>
-                    <div class='row simulation_inputs'>
+                    <div class='row simulation_inputs' data-step="10" data-intro="Here you can adjust other seetings. See if you can make the Taxi world more effescient than the Uber world.">
                         <div class='row'>
                             <div class='col-xs-7'>
                                 <span>Number of Taxis</span>
