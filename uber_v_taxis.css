@@ -63,6 +63,7 @@
 }
 input.simulation_inputs{
     width: 50px;
+    text-align: center;
 }
 
 /*Stats styling*/
