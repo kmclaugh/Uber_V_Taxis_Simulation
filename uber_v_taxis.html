@@ -36,7 +36,7 @@
                     <button id='start'>start</button>
                 </div>
                 <div class='col-xs-4 col-sm-2'>
-                    <div class='simulation_time'>
+                    <div class='simulation_time '>
                         <span class='simulation_time'>Time </span>
                         <br class='visible-xs'/>
                         <span id='current_time' class='simulation_time'>12:00 pm</span>
@@ -75,13 +75,13 @@
                 </div>
             </div>
             <div class='row'>
-                <div class='col-xs-1 col-sm-3'>
+                <div class='col-xs-1 col-sm-2 col-md-3'>
                     <div class='horizontal_slider' id='demand_slider_container' data-step="4" data-intro="You can manaully increase or decrease the demand for both worlds here,">
                         <input id="demand_slider" type="text" data-slider-step="1" data-slider-value="0" data-slider-orientation="vertical" />
                     </div>
                     
                 </div>
-                <div class='col-xs-10 col-sm-6'>
+                <div class='col-xs-10 col-sm-9 col-md-8'>
                     <div id="uber_output_graph" data-step="6" data-intro="The results of both worlds are graphed in real time here."></div>
                 </div>
             </div>
@@ -192,23 +192,23 @@
                 </div>
             </div>
             <div class='row'>
-                <div class='col-xs-1 col-sm-1'></div>
-                <div class='col-xs-10 col-sm-6'>
+                <div class='col-xs-1 col-sm-1 col-md-2'></div>
+                <div class='col-xs-10 col-sm-7 col-md-6'>
                     <div class='mean_container' data-step="8" data-intro="you can change its mean here,">
                         <input id="mean" class='cdf_slider' type="text" />
                     </div>
                 </div>
             </div>
             <div class='row'>
-                <div class='col-xs-1 col-sm-1'>
+                <div class='col-xs-1 col-sm-1 col-md-2'>
                     <div id='stand_dev_slider' class='horizontal_slider' data-step="9" data-intro="and its standard deviation here.">
                         <input id="standard_dev" class='cdf_slider' type="text" />
                     </div>
                 </div>
-                <div class='col-xs-10 col-sm-6'>
+                <div class='col-xs-10 col-sm-7 col-md-6'>
                     <div id="uber_cdf_graph" data-step="7" data-intro="This graph shows the total number of uber drivers that will work for each surge price. It is a normal distribution so,"></div>
                 </div>
-                <div class='col-xs-10 col-sm-3'>
+                <div class='col-xs-10 col-sm-3 col-md-2'>
                     <div class='row simulation_inputs' data-step="10" data-intro="Here you can adjust other seetings. See if you can make the Taxi world more effescient than the Uber world.">
                         <div class='row'>
                             <div class='col-xs-7'>
@@ -232,6 +232,14 @@
                             </div>
                             <div class='col-xs-3'>
                                 <input id='uber_base_price' class='simulation_inputs' value='.1'/>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='col-xs-7'>
+                                <span>Uber Max Surge</span>
+                            </div>
+                            <div class='col-xs-3'>
+                                <input id='uber_max_surge' class='simulation_inputs' value='1000'/>
                             </div>
                         </div>
                     </div>

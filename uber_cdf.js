@@ -9,7 +9,7 @@ $(window).load(function () {
         
         //Create the mean slider for the uber driver cdf
         $("#mean").slider({
-            ticks : [0, 1.5, max_cdf_surge/2, max_cdf_surge],
+            ticks : [0, 1.5, max_cdf_surge],
             scale: 'linear',
             step: .1,
             ticks_snap_bounds: .1,
@@ -19,7 +19,7 @@ $(window).load(function () {
         //Create the standard dev slider for the uber cdf
         $('#standard_dev').slider({
             reversed : true,
-            ticks : [.1, .3, max_cdf_standard_dev/2, max_cdf_standard_dev],
+            ticks : [.1, .3, max_cdf_standard_dev],
             scale: 'linear',
             step: .1,
             orientation: "vertical",
@@ -108,7 +108,6 @@ function uber_cdf_graph_class(the_data, graph_container_id){
         
         //Get the new graph dimensions
         self.set_graph_dimensions();
-        console.log(self.width, $( window ).width())
         //Update the svg dimensions
         self.svg
             .attr("width", self.width + self.margin.left + self.margin.right)

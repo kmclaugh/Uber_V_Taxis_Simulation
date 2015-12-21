@@ -13,7 +13,7 @@
         width: 100%;
     }
 }
-@media (min-width: 687px) {
+@media (min-width: 992px) {
     .mean_container .slider.slider-horizontal{
         width: 500px;
     }

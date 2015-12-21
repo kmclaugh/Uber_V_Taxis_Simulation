@@ -3,6 +3,7 @@ var real_time_per_step;
 var simulation_time_per_step;
 var base_uber;
 var taxi_price;
+var max_surge;
 
 //Globals
 var timer;
@@ -18,6 +19,7 @@ function reset_global_variables(){
     real_time_per_step = 100;
     simulation_time_per_step = 30;//seconds
     base_uber = $('#uber_base_price').autoNumeric('get') * (simulation_time_per_step/60);
+    max_surge = Number($('#uber_max_surge').val());
     taxi_price = $('#taxi_price').autoNumeric('get') * (simulation_time_per_step/60);
     number_of_taxis = $('#number_of_taxis').val();
     if (number_of_taxis > 100){
@@ -113,6 +115,9 @@ $(window).load(function () {
         $('#uber_base_price').change(function(){
             base_uber = $('#uber_base_price').autoNumeric('get') * (simulation_time_per_step/60);
         });
+        $('#uber_max_surge').change(function(){
+            max_surge = Number($('#uber_max_surge').val());
+        });
         $('#taxi_price').change(function(){
             taxi_price = $('#taxi_price').autoNumeric('get') * (simulation_time_per_step/60);
         });
@@ -122,7 +127,6 @@ $(window).load(function () {
                 number_of_taxis = 100;
             }
             create_taxis(number_of_taxis);
-            console.log(number_of_taxis)
         });
         
         //Start the time stepping when the use clicks start
@@ -441,6 +445,11 @@ function grid_class(size, html_id, type){
                 
                 //Update previous_total_weight_time
                 this.previous_total_weight_time = current_total_wait_time_rounded;
+            }
+            
+            console.log(this.current_surge, max_surge, this.current_total_wait_time, this.previous_total_weight_time)
+            if (this.current_surge > max_surge){
+                this.current_surge = max_surge;
             }
         }
         
