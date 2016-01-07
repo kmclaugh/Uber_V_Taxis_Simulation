@@ -447,7 +447,6 @@ function grid_class(size, html_id, type){
                 this.previous_total_weight_time = current_total_wait_time_rounded;
             }
             
-            console.log(this.current_surge, max_surge, this.current_total_wait_time, this.previous_total_weight_time)
             if (this.current_surge > max_surge){
                 this.current_surge = max_surge;
             }
