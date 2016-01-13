@@ -198,7 +198,7 @@ function output_graph_class(uber_grid, taxi_grid, graph_container_id){
             .attr("x",0 - (self.height / 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
-            .text("Ride Requests");
+            .text("# of Requests & Drivers");
             
         //Add the surge y-axis
         self.y_axis_right = self.svg_g.append('g')
