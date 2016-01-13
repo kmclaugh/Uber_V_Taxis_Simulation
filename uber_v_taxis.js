@@ -297,6 +297,7 @@ function update_stats(grid){
     $('[name="'+grid.type+'_average_wait_time"]').text(convert_timesteps_to_time(average_wait_time));
     $('[name="'+grid.type+'_average_ride_price"]').text('$'+price_per_minute.toFixed(2));
     $('[name="'+grid.type+'_average_driver_salary"]').text('$'+average_driver_salary.toFixed(2));
+    $('[name="'+grid.type+'_total_rides_completed"]').text(grid.total_rides_completed);
     
     if (grid.type == 'uber') { 
         $('[name="'+grid.type+'_current_surge"]').text(grid.current_surge);
