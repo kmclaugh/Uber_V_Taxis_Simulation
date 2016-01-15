@@ -30,7 +30,7 @@
             <div class='row simulation_start' data-step="1" data-intro="Control the simulation from here.">
                 <div class='hidden-xs col-sm-3'></div>
                 <div class='col-xs-2 col-sm-1'>
-                    <button onclick="javascript:introJs().start();">Tour</button>
+                    <button onclick="javascript:introJs().start();">tour</button>
                 </div>
                 <div class='col-xs-2 col-sm-1'>
                     <button id='start'>start</button>
@@ -43,21 +43,21 @@
                     </div>
                 </div>
                 <div class='col-xs-2 col-sm-1'>
-                    <button id='stop'>stop</button>
+                    <button id='stop'>pause</button>
                 </div>
                 <div class='col-xs-2 col-sm-1'>
                     <button id='reset'>reset</button>
                 </div>
             </div>
             <div class='row'>
-                <div class='col-sm-1 hidden-xs'></div>
-                <div class='col-sm-5 taxi_column'>
-                    <div class='simulation_header'>Taxi</div>
-                    <div id='taxi_grid' class='simulation_grid' data-step="2" data-intro="This is the taxi world"></div>
-                </div>
+                <div class='col-sm-1 hidden-xs'></div>'
                 <div class='col-sm-5 uber_column'>
                     <div class='simulation_header'>Uber</div>
                     <div id='uber_grid' class='simulation_grid' data-step="3" data-intro="This is the uber world"></div>
+                </div>
+                <div class='col-sm-5 taxi_column'>
+                    <div class='simulation_header'>Taxi</div>
+                    <div id='taxi_grid' class='simulation_grid' data-step="2" data-intro="This is the taxi world"></div>
                 </div>
             </div>
             
@@ -93,18 +93,18 @@
             <div id='xs_small_stats_view' class='visible-xs' >
                 <div class='row'>
                     <div class='col-xs-4'></div>
-                    <div class='col-xs-3 stats header'>Taxi</div>
                     <div class='col-xs-3 stats header'>Uber</div>
+                    <div class='col-xs-3 stats header'>Taxi</div>
                 </div>
                 <div class='row'>
                     <div class='col-xs-4 stats name'>
                         Average wait time
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='taxi_average_wait_time'>00:00:00</span>
+                        <span name='uber_average_wait_time'>00:00:00</span>
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='uber_average_wait_time'>00:00:00</span>
+                        <span name='taxi_average_wait_time'>00:00:00</span>
                     </div>
                 </div>
                 <div class='row'>
@@ -112,10 +112,10 @@
                         Longest Wait time
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='taxi_longest_wait_time'>00:00:00</span>
+                        <span name='uber_longest_wait_time'>00:00:00</span>
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='uber_longest_wait_time'>00:00:00</span>
+                        <span name='taxi_longest_wait_time'>00:00:00</span>
                     </div>
                 </div>
                 <div class='row'>
@@ -123,10 +123,10 @@
                         Average price<br>per minute
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='taxi_average_ride_price'>$0.00</span>
+                        <span name='uber_average_ride_price'>$0.00</span>
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='uber_average_ride_price'>$0.00</span>
+                        <span name='taxi_average_ride_price'>$0.00</span>
                     </div>
                 </div>
                 <div class='row'>
@@ -134,10 +134,10 @@
                         Average driver salary<br>per hour
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='taxi_average_driver_salary'>$0.00</span>
+                        <span name='uber_average_driver_salary'>$0.00</span>
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='uber_average_driver_salary'>$0.00</span>
+                        <span name='taxi_average_driver_salary'>$0.00</span>
                     </div>
                 </div>
                 <div class='row'>
@@ -145,10 +145,10 @@
                         Total Rides Completed
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='taxi_total_rides_completed'>0</span>
+                        <span name='uber_total_rides_completed'>0</span>
                     </div>
                     <div class='col-xs-3 stats value'>
-                        <span name='uber_total_rides_completed'>0</span>
+                        <span name='taxi_total_rides_completed'>0</span>
                     </div>
                 </div>
             </div>
@@ -162,26 +162,6 @@
                     <div class='col-sm-2 stats header'>Average price<br>per minute</div>
                     <div class='col-sm-2 stats header'>Average driver salary<br>per hour</div>
                     <div class='col-sm-2 stats header'>Total Rides Completed</div>
-                </div>
-                <div class='row'>
-                    <div class='col-sm-1 stats name'>
-                        Taxi
-                    </div>
-                    <div class='col-sm-2 stats value'>
-                        <span name='taxi_average_wait_time'>00:00:00</span>
-                    </div>
-                    <div class='col-sm-2 stats value'>
-                        <span name='taxi_longest_wait_time'>00:00:00</span>
-                    </div>
-                    <div class='col-sm-2 stats value'>
-                        <span name='taxi_average_ride_price'>$0.00</span>
-                    </div>
-                    <div class='col-sm-2 stats value'>
-                        <span name='taxi_average_driver_salary'>$0.00</span>
-                    </div>
-                    <div class='col-sm-2 stats value'>
-                        <span name='taxi_total_rides_completed'>0</span>
-                    </div>
                 </div>
                 <div class='row'>
                     <div class='col-sm-1 stats name'>
@@ -201,6 +181,26 @@
                     </div>
                     <div class='col-sm-2 stats value'>
                         <span name='uber_total_rides_completed'>0</span>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col-sm-1 stats name'>
+                        Taxi
+                    </div>
+                    <div class='col-sm-2 stats value'>
+                        <span name='taxi_average_wait_time'>00:00:00</span>
+                    </div>
+                    <div class='col-sm-2 stats value'>
+                        <span name='taxi_longest_wait_time'>00:00:00</span>
+                    </div>
+                    <div class='col-sm-2 stats value'>
+                        <span name='taxi_average_ride_price'>$0.00</span>
+                    </div>
+                    <div class='col-sm-2 stats value'>
+                        <span name='taxi_average_driver_salary'>$0.00</span>
+                    </div>
+                    <div class='col-sm-2 stats value'>
+                        <span name='taxi_total_rides_completed'>0</span>
                     </div>
                 </div>
             </div>

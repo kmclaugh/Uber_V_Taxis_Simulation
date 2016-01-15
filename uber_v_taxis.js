@@ -160,10 +160,10 @@ $(window).load(function () {
             clearInterval(timer);
             timer = null;
             reset_global_variables();
-            update_stats(uber_grid);
-            update_stats(taxi_grid);
             uber_grid.reset();
             taxi_grid.reset();
+            update_stats(uber_grid);
+            update_stats(taxi_grid);
             generate_data();
             create_taxis(number_of_taxis);
             $('#mean').slider('enable');
@@ -287,6 +287,9 @@ function update_stats(grid){
     var average_ride_price = grid.total_ride_price/grid.total_rides_completed;
     var average_driver_salary = grid.total_money/grid.total_driver_time;// $/timestep
     average_driver_salary = average_driver_salary * (1/simulation_time_per_step) * 60 * 60;// $/hour
+    if (isNaN(average_driver_salary)){
+        average_driver_salary = 0;
+    }
     var price_per_minute = grid.total_ride_price/grid.total_ride_time * 1/simulation_time_per_step * 60//sec/min
     if (isNaN(price_per_minute)){
         price_per_minute = 0;
@@ -490,6 +493,9 @@ function grid_class(size, html_id, type){
     
     this.reset = function(){
         /*Clears passengers from cells and resets the styles*/
+        this.total_money = 0;
+        this.total_driver_time = 0;
+        this.longest_wait_time = 0;
         for (y=0; y<self.array.length; y++){
             var row = self.array[y];
             for (x=0; x<row.length; x++){
